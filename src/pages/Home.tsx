@@ -2213,7 +2213,7 @@ export default function Home() {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                   <a
                     href={publicUrl(
-                      "/images/Bhavyasri_Resume_Frontend_main.pdf"
+                      "/case-studies/fintech/Bhavyasri_Resume.pdf"
                     )}
                     target="_blank"
                     rel="noreferrer"
