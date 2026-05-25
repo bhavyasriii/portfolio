@@ -133,40 +133,6 @@ function Text3DReveal({ text, delay = 0, style }: { text: string; delay?: number
 /* ─────────────────────────────────────────
    SCRAMBLE TEXT
 ───────────────────────────────────────── */
-function ScrambleText({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
-  const [displayed, setDisplayed] = useState(text.replace(/\S/g, " "));
-
-  useEffect(() => {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const finalChars = text.split("");
-    let frame = 0;
-    let intervalId: number | undefined;
-
-    const timeoutId = window.setTimeout(() => {
-      intervalId = window.setInterval(() => {
-        frame += 1;
-        const next = finalChars
-          .map((char, index) => {
-            if (char === " ") return " ";
-            return index < frame ? char : letters[Math.floor(Math.random() * letters.length)];
-          })
-          .join("");
-        setDisplayed(next);
-        if (frame >= finalChars.length) {
-          if (intervalId) window.clearInterval(intervalId);
-          setDisplayed(text);
-        }
-      }, 45);
-    }, delay * 1000);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      if (intervalId) window.clearInterval(intervalId);
-    };
-  }, [text, delay]);
-
-  return <span style={style}>{displayed}</span>;
-}
 
 /* ─────────────────────────────────────────
    LUXURY TYPEWRITER — Smooth cursor with glow
@@ -312,7 +278,7 @@ function ScrollReveal3D({ children, delay = 0 }: { children: React.ReactNode; de
 /* ─────────────────────────────────────────
    LUXURY GLOW HOVER — 3D depth with hover
 ───────────────────────────────────────── */
-function GlowButton({ text, onClick }: { text: string; onClick: () => void }) {
+function GlowButton({ text, onClick }: { text: string; onClick?: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -877,9 +843,9 @@ export default function Home() {
                 <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col justify-center self-center px-10 xl:px-16">
                   {/* SCRAMBLE on name */}
                   <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(40px, 5vw, 76px)", lineHeight: 1.0, letterSpacing: "-0.04em", color: "var(--ink)" }}>
-                    <ScrambleText text="Bhavyasri" delay={0.3} /><br />
-                    <em style={{ fontStyle: "italic", color: "var(--stone)" }}><ScrambleText text="Mudireddy" delay={0.7} /></em>
-                  </h2>
+  Bhavyasri<br />
+  <em style={{ fontStyle: "italic", color: "var(--stone)" }}>Mudireddy</em>
+</h2>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--stone)", marginTop: 20 }}>
                     Product Designer &amp; Frontend Engineer
                   </p>
