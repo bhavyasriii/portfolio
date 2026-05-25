@@ -45,114 +45,324 @@ function publicUrl(p: string) {
 }
 
 /* ─────────────────────────────────────────
-   LOAD BAR
+   SMOOTH LOADING BAR — Luxury gradient fade
 ───────────────────────────────────────── */
 function LoadBar() {
   const [loaded, setLoaded] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setLoaded(true), 440); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setLoaded(true), 1200);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <AnimatePresence>
       {!loaded && (
-        <motion.div style={{ position: "fixed", top: 0, left: 0, height: 3, background: "#c9a96e", zIndex: 10000, originX: 0 }}
-          initial={{ width: "0%" }} animate={{ width: "100%" }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }} />
+        <motion.div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: 2,
+            background: "linear-gradient(90deg, transparent, #c9a96e, transparent)",
+            zIndex: 10000,
+            boxShadow: "0 0 20px rgba(201, 169, 110, 0.6)",
+          }}
+          initial={{ width: "0%", opacity: 1 }}
+          animate={{ width: "100%", opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2, ease: "easeInOut" }}
+        />
       )}
     </AnimatePresence>
   );
 }
 
 /* ─────────────────────────────────────────
-   TEXT SCRAMBLE
+   3D TEXT REVEAL — Perspective depth effect
 ───────────────────────────────────────── */
-const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-function ScrambleText({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
-  const [display, setDisplay] = useState(text.replace(/[^ ]/g, "·"));
-  const rafRef = useRef<number>(0);
+function Text3DReveal({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [inView, setInView] = useState(false);
+
   useEffect(() => {
-    let startTime: number | null = null;
-    const duration = 1000;
-    const delayMs = delay * 1000;
-    const tick = (now: number) => {
-      if (!startTime) startTime = now;
-      const elapsed = now - startTime - delayMs;
-      if (elapsed < 0) { rafRef.current = requestAnimationFrame(tick); return; }
-      const progress = Math.min(elapsed / duration, 1);
-      const revealed = Math.floor(progress * text.length);
-      setDisplay(text.split("").map((char, i) => {
-        if (char === " ") return " ";
-        if (i < revealed) return char;
-        return CHARS[Math.floor(Math.random() * CHARS.length)];
-      }).join(""));
-      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
-      else setDisplay(text);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [text, delay]);
-  return <span style={style}>{display}</span>;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setInView(true);
+        observer.unobserve(entry.target);
+      }
+    }, { threshold: 0.1 });
+
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        perspective: "1000px",
+        ...style,
+      }}
+    >
+      {text.split("").map((char, i) => (
+        <motion.span
+          key={i}
+          style={{
+            display: "inline-block",
+            transformStyle: "preserve-3d",
+          }}
+          initial={{ opacity: 0, rotateX: 90, z: -100 }}
+          animate={
+            inView
+              ? { opacity: 1, rotateX: 0, z: 0 }
+              : { opacity: 0, rotateX: 90, z: -100 }
+          }
+          transition={{
+            delay: inView ? delay + i * 0.05 : 0,
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </div>
+  );
 }
 
 /* ─────────────────────────────────────────
-   TYPEWRITER
+   SCRAMBLE TEXT
 ───────────────────────────────────────── */
-function Typewriter({ text, delay = 0, speed = 38, style }: { text: string; delay?: number; speed?: number; style?: React.CSSProperties }) {
-  const [displayed, setDisplayed] = useState("");
-  const [started, setStarted] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setStarted(true), delay * 1000); return () => clearTimeout(t); }, [delay]);
+function ScrambleText({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
+  const [displayed, setDisplayed] = useState(text.replace(/\S/g, " "));
+
   useEffect(() => {
-    if (!started) return;
-    let i = 0;
-    const interval = setInterval(() => { i++; setDisplayed(text.slice(0, i)); if (i >= text.length) clearInterval(interval); }, speed);
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const finalChars = text.split("");
+    let frame = 0;
+    let intervalId: number | undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      intervalId = window.setInterval(() => {
+        frame += 1;
+        const next = finalChars
+          .map((char, index) => {
+            if (char === " ") return " ";
+            return index < frame ? char : letters[Math.floor(Math.random() * letters.length)];
+          })
+          .join("");
+        setDisplayed(next);
+        if (frame >= finalChars.length) {
+          if (intervalId) window.clearInterval(intervalId);
+          setDisplayed(text);
+        }
+      }, 45);
+    }, delay * 1000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (intervalId) window.clearInterval(intervalId);
+    };
+  }, [text, delay]);
+
+  return <span style={style}>{displayed}</span>;
+}
+
+/* ─────────────────────────────────────────
+   LUXURY TYPEWRITER — Smooth cursor with glow
+───────────────────────────────────────── */
+function LuxuryTypewriter({ text, delay = 0.5, speed = 40, style }: { text: string; delay?: number; speed?: number; style?: React.CSSProperties }) {
+  const [displayed, setDisplayed] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    const delayTimer = setTimeout(() => setIsTyping(true), delay * 1000);
+    return () => clearTimeout(delayTimer);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!isTyping) return;
+    let index = 0;
+    const interval = setInterval(() => {
+      setDisplayed(text.slice(0, index + 1));
+      index += 1;
+      if (index >= text.length) clearInterval(interval);
+    }, speed);
     return () => clearInterval(interval);
-  }, [started, text, speed]);
+  }, [isTyping, text, speed]);
+
   return (
     <span style={style}>
       {displayed}
-      {displayed.length < text.length && (
-        <motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} style={{ color: "var(--gold)" }}>|</motion.span>
+      {isTyping && displayed.length < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0.3] }}
+          transition={{ duration: 0.8, repeat: Infinity }}
+          style={{
+            marginLeft: "2px",
+            color: "#c9a96e",
+            textShadow: "0 0 8px rgba(201, 169, 110, 0.5)",
+          }}
+        >
+          |
+        </motion.span>
       )}
     </span>
   );
 }
 
+const Typewriter = LuxuryTypewriter;
+
 /* ─────────────────────────────────────────
-   CURSOR TRAIL — 6 gold fading dots
+   3D PARTICLE FLOAT — Subtle depth parallax
 ───────────────────────────────────────── */
-const TRAIL_COUNT = 6;
-function CursorTrail() {
-  const positions = useRef<{ x: number; y: number }[]>(Array(TRAIL_COUNT).fill({ x: -200, y: -200 }));
-  const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const rafRef = useRef<number>(0);
-  const mousePos = useRef({ x: -200, y: -200 });
+function ParticleFloat() {
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; duration: number; delay: number; depth: number }>>([]);
+  const mousePos = useRef({ x: 0, y: 0 });
+
   useEffect(() => {
-    const onMove = (e: MouseEvent) => { mousePos.current = { x: e.clientX, y: e.clientY }; };
-    window.addEventListener("mousemove", onMove);
-    const loop = () => {
-      positions.current = [mousePos.current, ...positions.current.slice(0, TRAIL_COUNT - 1)];
-      dotRefs.current.forEach((dot, i) => {
-        if (!dot) return;
-        const pos = positions.current[i];
-        const size = Math.max(3, 12 - i * 2);
-        const opacity = (1 - i / TRAIL_COUNT) * 0.5;
-        dot.style.transform = `translate(${pos.x - size / 2}px, ${pos.y - size / 2}px)`;
-        dot.style.width = `${size}px`;
-        dot.style.height = `${size}px`;
-        dot.style.opacity = String(opacity);
-      });
-      rafRef.current = requestAnimationFrame(loop);
+    const newParticles = Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 2 + Math.random() * 4,
+      duration: 20 + Math.random() * 10,
+      delay: i * 0.3,
+      depth: Math.random() * 100,
+    }));
+    setParticles(newParticles);
+
+    const onMove = (e: { clientX: any; clientY: any; }) => {
+      mousePos.current = { x: e.clientX, y: e.clientY };
     };
-    rafRef.current = requestAnimationFrame(loop);
-    return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(rafRef.current); };
+
+    window.addEventListener("mousemove", onMove);
+    return () => window.removeEventListener("mousemove", onMove);
   }, []);
+
   return (
-    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9997 }}>
-      {Array(TRAIL_COUNT).fill(null).map((_, i) => (
-        <div key={i} ref={(el) => { dotRefs.current[i] = el; }}
-          style={{ position: "fixed", top: 0, left: 0, borderRadius: "50%", background: "rgba(201,169,110,0.7)", willChange: "transform" }} />
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 1 }}>
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          style={{
+            position: "fixed",
+            width: p.size,
+            height: p.size,
+            borderRadius: "50%",
+            background: `rgba(201, 169, 110, ${0.3 - p.depth / 500})`,
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            filter: "blur(0.5px)",
+          }}
+          animate={{
+            y: [0, -100],
+            opacity: [0, 0.6, 0],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
       ))}
     </div>
   );
 }
+
+/* ─────────────────────────────────────────
+   SMOOTH SCROLL REVEAL — 3D perspective on scroll
+───────────────────────────────────────── */
+function ScrollReveal3D({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      ref={ref}
+      style={{ perspective: "1200px" }}
+      initial={{ opacity: 0, rotateX: 15, y: 40 }}
+      animate={inView ? { opacity: 1, rotateX: 0, y: 0 } : {}}
+      transition={{
+        duration: 0.9,
+        delay,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   LUXURY GLOW HOVER — 3D depth with hover
+───────────────────────────────────────── */
+function GlowButton({ text, onClick }: { text: string; onClick: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.button
+      style={{
+        padding: "12px 32px",
+        background: "rgba(201, 169, 110, 0.1)",
+        border: "1px solid rgba(201, 169, 110, 0.3)",
+        color: "#c9a96e",
+        borderRadius: "8px",
+        cursor: "pointer",
+        fontSize: "14px",
+        fontWeight: "500",
+        perspective: "1000px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <motion.div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(circle, rgba(201,169,110,0.2) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+        animate={isHovered ? { opacity: [0, 1, 0.5] } : { opacity: 0 }}
+        transition={{ duration: 1 }}
+      />
+      <span style={{ position: "relative", zIndex: 1 }}>{text}</span>
+    </motion.button>
+  );
+}
+
+/* ─────────────────────────────────────────
+   EXPORT ALL
+───────────────────────────────────────── */
+export {
+  LoadBar,
+  Text3DReveal,
+  LuxuryTypewriter,
+  ParticleFloat,
+  ScrollReveal3D,
+  GlowButton,
+};
+
 
 /* ─────────────────────────────────────────
    CUSTOM CURSOR
@@ -196,6 +406,53 @@ function CustomCursor() {
           )}
         </AnimatePresence>
       </motion.div>
+    </div>
+  );
+}
+
+function CursorTrail() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const position = useRef({ x: -100, y: -100 });
+  const raf = useRef<number>(0);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      position.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const animate = () => {
+      if (containerRef.current) {
+        const dots = Array.from(containerRef.current.children) as HTMLElement[];
+        dots.forEach((dot, index) => {
+          dot.style.transform = `translate(${position.current.x - dot.clientWidth / 2}px, ${position.current.y - dot.clientHeight / 2}px)`;
+          dot.style.opacity = String(Math.max(0, 0.25 - index * 0.05));
+        });
+      }
+      raf.current = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    raf.current = requestAnimationFrame(animate);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(raf.current);
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9998 }}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} style={{
+          position: "fixed",
+          width: 12 - index * 2,
+          height: 12 - index * 2,
+          borderRadius: "50%",
+          background: "rgba(201,169,110,0.24)",
+          pointerEvents: "none",
+          transform: "translate(-9999px, -9999px)",
+          transition: "transform 0.16s ease-out, opacity 0.16s ease-out",
+        }} />
+      ))}
     </div>
   );
 }
