@@ -348,7 +348,7 @@ function MobileCTAStrip() {
     <>
       <style>{`@media (min-width: 769px) { .mobile-cta-strip { display: none !important; } }`}</style>
       <div className="mobile-cta-strip" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200, background: "rgba(26,23,20,0.96)", backdropFilter: "blur(16px)", borderTop: "1px solid #2d2a26", padding: "12px 20px 20px", display: "flex", gap: 10 }}>
-        <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume.pdf")} target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#c9a96e", color: "#1a1714", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>View Resume</a>
+        <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume_New.pdf")} target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#c9a96e", color: "#1a1714", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>View Resume</a>
         <a href="mailto:bhavyasrireddy267@gmail.com" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: "var(--sand)", border: "1px solid #2d2a26", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>Email Me</a>
       </div>
     </>
@@ -661,7 +661,7 @@ export default function Home() {
                     <button type="button" className="btn-ink" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
                       View Case Studies <FiArrowRight />
                     </button>
-                    <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume.pdf")} target="_blank" rel="noreferrer" className="btn-outline">
+                    <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume_New.pdf")} target="_blank" rel="noreferrer" className="btn-outline">
                       <FiDownload /> Resume
                     </a>
                   </div>
@@ -688,7 +688,7 @@ export default function Home() {
                         <button type="button" className="btn-ink" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
                           View Case Studies <FiArrowRight />
                         </button>
-                        <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume.pdf")} target="_blank" rel="noreferrer" className="btn-outline">
+                        <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume_New.pdf")} target="_blank" rel="noreferrer" className="btn-outline">
                           <FiDownload /> Resume
                         </a>
                       </div>
@@ -754,7 +754,7 @@ export default function Home() {
                         </button>
                       </MagneticWrap>
                       <MagneticWrap>
-                        <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume.pdf")} target="_blank" rel="noreferrer" className="btn-outline" data-cursor="Open">
+                        <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume_New.pdf")} target="_blank" rel="noreferrer" className="btn-outline" data-cursor="Open">
                           <FiDownload /> Resume
                         </a>
                       </MagneticWrap>
@@ -904,7 +904,7 @@ export default function Home() {
                     Available for full-time product design roles in <span style={{ color: "var(--sand-light)" }}>fintech, healthcare,</span> or AI-first products. Based in Denton, TX — open to remote.
                   </p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume.pdf")} target="_blank" rel="noreferrer" className="btn-gold" data-cursor="Open"><FiDownload /> View Resume</a>
+                    <a href={publicUrl("/case-studies/fintech/Bhavyasri_Resume_New.pdf")} target="_blank" rel="noreferrer" className="btn-gold" data-cursor="Open"><FiDownload /> View Resume</a>
                     <a href="mailto:bhavyasrireddy267@gmail.com" className="btn-ghost-dark" data-cursor="Mail"><FiMail /> Email Me</a>
                   </div>
                 </div>
