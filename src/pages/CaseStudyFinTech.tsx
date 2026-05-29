@@ -8,6 +8,7 @@ import Opportunity from "../components/case-study/fintech/Opportunity";
 import AIDecisions from "../components/case-study/fintech/AIDecisions";
 import UserFlow from "../components/case-study/fintech/UserFlow";
 import ScreensShowcase from "../components/case-study/fintech/ScreensShowcase";
+import UsabilityTesting from "../components/case-study/fintech/UsabilityTesting";
 import DesignDecisions from "../components/case-study/fintech/DesignDecisions";
 import Accessibility from "../components/case-study/fintech/Accessibility";
 import Impact from "../components/case-study/fintech/Impact";
@@ -55,6 +56,7 @@ const CaseStudyFinTech: React.FC = () => {
         <LowFiWireframes />
         <MidFiScreens />
         <ScreensShowcase />
+        <UsabilityTesting />
         <DesignDecisions />
         <Accessibility />
         <Impact />
