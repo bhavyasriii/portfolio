@@ -26,6 +26,8 @@ import hotelMotion from "../assets/motion/hotel-motion.mp4";
 import coverHealthcare from "../assets/images/cover-healthcare.png";
 import spotifyMotion from "../assets/motion/spotify-motion.mp4";
 
+const RESUME_URL = "https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view";
+
 type CaseStudy = {
   id: string; title: string; category: string;
   summary: string; image: string; route?: string; year: string;
@@ -34,11 +36,6 @@ type InteractionStudy = {
   id: string; title: string; category: string;
   summary: string; videoSrc: string; format: "desktop" | "mobile";
 };
-
-function publicUrl(p: string) {
-  const clean = p.startsWith("/") ? p.slice(1) : p;
-  return `${import.meta.env.BASE_URL}${clean}`;
-}
 
 /* ─────────────────────────────────────────
    RESPONSIVE HOOK
@@ -157,7 +154,7 @@ function GlowButton({ text, onClick }: { text: string; onClick?: () => void }) {
 export { LoadBar, LuxuryTypewriter, ParticleFloat, ScrollReveal3D, GlowButton };
 
 /* ─────────────────────────────────────────
-   CUSTOM CURSOR — desktop only
+   CUSTOM CURSOR
 ───────────────────────────────────────── */
 function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -348,7 +345,7 @@ function MobileCTAStrip() {
     <>
       <style>{`@media (min-width: 769px) { .mobile-cta-strip { display: none !important; } }`}</style>
       <div className="mobile-cta-strip" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200, background: "rgba(26,23,20,0.96)", backdropFilter: "blur(16px)", borderTop: "1px solid #2d2a26", padding: "12px 20px 20px", display: "flex", gap: 10 }}>
-        <a href="https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view" target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#c9a96e", color: "#1a1714", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>View Resume</a>
+        <a href={RESUME_URL} target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#c9a96e", color: "#1a1714", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>View Resume</a>
         <a href="mailto:bhavyasrireddy267@gmail.com" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: "var(--sand)", border: "1px solid #2d2a26", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>Email Me</a>
       </div>
     </>
@@ -407,10 +404,7 @@ function MotionSection({ interactionStudies, activeStudyIndex, setActiveStudyInd
         {!isMobile && <div aria-hidden style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(80px,12vw,160px)", lineHeight: 1, letterSpacing: "-0.06em", color: "transparent", WebkitTextStroke: "1px #2d2a26", opacity: 0.6, userSelect: "none", paddingBottom: 4 }}>03</div>}
       </div>
 
-      {/* Main content — stack on mobile/tablet */}
       <div style={{ display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "4fr 7fr", borderBottom: "1px solid #2a2520" }}>
-
-        {/* Left panel */}
         <div style={{ position: isMobile || isTablet ? "relative" : "sticky", top: 128, alignSelf: "start", borderRight: isMobile || isTablet ? "none" : "1px solid #2a2520", borderBottom: isMobile || isTablet ? "1px solid #2a2520" : "none", background: "#1a1714", padding: isMobile ? "32px 24px" : "48px 40px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: isMobile ? "auto" : 600 }}>
           <div>
             <div aria-hidden style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(48px,8vw,100px)", lineHeight: 1, letterSpacing: "-0.06em", color: "transparent", WebkitTextStroke: "1px #2d2a26", userSelect: "none", marginBottom: 28 }}>{pad(activeStudyIndex)}</div>
@@ -445,7 +439,6 @@ function MotionSection({ interactionStudies, activeStudyIndex, setActiveStudyInd
           </div>
         </div>
 
-        {/* Video panel */}
         <div style={{ padding: isMobile ? "24px" : "40px", display: "flex", flexDirection: "column" }}>
           <div style={{ background: "#0d0c0a", borderRadius: 16, border: "1px solid #252220", overflow: "hidden", position: "relative", flex: 1, minHeight: isMobile ? 320 : 560, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10, borderBottom: "1px solid #1f1c18", background: "rgba(13,12,10,0.9)", backdropFilter: "blur(12px)" }}>
@@ -475,7 +468,6 @@ function MotionSection({ interactionStudies, activeStudyIndex, setActiveStudyInd
         </div>
       </div>
 
-      {/* Filmstrip tabs — scrollable on mobile */}
       <div style={{ borderTop: "1px solid #252220", display: "grid", gridTemplateColumns: isMobile ? `repeat(${interactionStudies.length}, minmax(140px, 1fr))` : `repeat(${interactionStudies.length}, 1fr)`, overflowX: isMobile ? "auto" : "visible" }}>
         {interactionStudies.map((study, index) => {
           const isActive = index === activeStudyIndex;
@@ -543,15 +535,8 @@ export default function Home() {
           --gold-pale: #e8d9c0; --sage: #03b450;
         }
         body { background: var(--cream); margin: 0; }
-
-        /* Hide custom cursor on touch devices */
-        @media (hover: none) {
-          *, *::before, *::after { cursor: auto !important; }
-        }
-        @media (hover: hover) {
-          *, *::before, *::after { cursor: none !important; }
-        }
-
+        @media (hover: none) { *, *::before, *::after { cursor: auto !important; } }
+        @media (hover: hover) { *, *::before, *::after { cursor: none !important; } }
         .btn-ink { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--cream); padding: 14px 28px; border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.10em; text-transform: uppercase; border: none; text-decoration: none; transition: background .25s, transform .2s; cursor: pointer; }
         .btn-ink:hover { background: var(--ink-soft); transform: translateY(-2px); }
         .btn-outline { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--ink-soft); padding: 13px 24px; border-radius: 100px; border: 1px solid var(--sand-light); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.10em; text-transform: uppercase; text-decoration: none; transition: border-color .2s, background .2s, transform .2s; }
@@ -571,32 +556,17 @@ export default function Home() {
         .pulsing-dot { position: relative; background: #6fcf97 !important; animation: pulseDot 2s ease-in-out infinite; }
         .pulsing-dot::before { content: ''; position: absolute; inset: -1px; border-radius: 50%; background: rgba(111,207,151,0.45); animation: pulseRing 2s ease-out infinite; }
         @keyframes pulseRing { 0% { transform: scale(1); opacity: 1; } 60% { transform: scale(2.4); opacity: 0; } 100% { transform: scale(2.4); opacity: 0; } }
-
-        /* ── RESPONSIVE OVERRIDES ── */
-
-        /* Metrics strip: 2 cols on mobile */
         @media (max-width: 767px) {
           .metrics-strip { grid-template-columns: repeat(2, 1fr) !important; }
           .metrics-strip > div { border-right: none !important; border-bottom: 1px solid var(--sand-light); }
           .metrics-strip > div:nth-child(odd) { border-right: 1px solid var(--sand-light) !important; }
-        }
-
-        /* Contact grid: single col on mobile */
-        @media (max-width: 767px) {
           .contact-grid { grid-template-columns: 1fr !important; padding: 36px 24px !important; }
-        }
-
-        /* Footer: stack on mobile */
-        @media (max-width: 767px) {
           .footer-row { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
         }
-
-        /* No-scrollbar utility */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* Only render custom cursor on non-touch */}
       {!isMobile && <><CustomCursor /><CursorTrail /></>}
       <LoadBar />
 
@@ -610,65 +580,51 @@ export default function Home() {
             <section ref={heroRef} className="relative w-full overflow-hidden" style={{ background: "var(--cream)", minHeight: isMobile ? "auto" : "100vh" }}>
               <div className="pointer-events-none absolute inset-0 z-10" style={{ opacity: 0.02, backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundSize: "256px" }} />
 
-              {/* ── MOBILE HERO ── */}
+              {/* MOBILE HERO */}
               {isMobile && (
                 <div style={{ padding: "100px 24px 60px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 0 }}>
-                  {/* Profile photo */}
-                  <motion.img src={profile} alt="Bhavyasri Mudireddy"
-                    initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ width: "72vw", maxWidth: 280, objectFit: "contain", filter: "drop-shadow(0 20px 40px rgba(26,23,20,0.14))", marginBottom: 32, willChange: "transform" }} />
-
+                  <motion.img src={profile} alt="Bhavyasri Mudireddy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ width: "72vw", maxWidth: 280, objectFit: "contain", filter: "drop-shadow(0 20px 40px rgba(26,23,20,0.14))", marginBottom: 32 }} />
                   <SectionTag>UX Designer · Portfolio</SectionTag>
-
                   <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
                     style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(44px,12vw,72px)", lineHeight: 0.92, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 16 }}>
                     Hi, <em style={{ fontStyle: "italic", color: "var(--stone)" }}>I'm</em>
                   </motion.h1>
-
                   <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
                     style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,10vw,60px)", lineHeight: 1.0, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 8 }}>
                     Bhavyasri<br /><em style={{ fontStyle: "italic", color: "var(--stone)" }}>Mudireddy</em>
                   </motion.h2>
-
                   <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.35 }}
                     style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--stone)", marginTop: 16 }}>
                     Product Designer &amp; Frontend Engineer
                   </motion.p>
-
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
                     style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 300, color: "var(--sand)", marginTop: 6, minHeight: "1.5em" }}>
                     <Typewriter text="AI UX · Fintech & Healthcare · React/TypeScript" delay={1.2} speed={32} />
                   </motion.p>
-
                   <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
                     style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: 1.8, color: "var(--stone)", fontWeight: 300, maxWidth: 320, marginTop: 20 }}>
-                    3 years bridging UX research and React/TypeScript — I design the flow, then build it. Specializing in AI-powered products for <span style={{ color: "var(--ink)", fontWeight: 400 }}>fintech &amp; healthcare</span>.
+                    3 years bridging UX research and React/TypeScript — I design the flow, then build it.
                   </motion.p>
-
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 20, justifyContent: "center" }}>
                     {["React", "TypeScript", "Framer Motion", "Figma", "WCAG AAA"].map((tag) => (
                       <span key={tag} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", border: "1px solid var(--sand-light)", borderRadius: 100, padding: "4px 10px", background: "var(--bone)" }}>{tag}</span>
                     ))}
                   </div>
-
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid var(--sand-light)", borderRadius: 100, padding: "10px 18px", background: "var(--bone)", marginTop: 20 }}>
                     <motion.span className="pulsing-dot" animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }} transition={{ duration: 1.1, repeat: Infinity }} style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--sage)", display: "inline-block", flexShrink: 0 }} />
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "var(--stone)", letterSpacing: "0.06em" }}>Available for work · 2026</span>
                   </div>
-
                   <div style={{ display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap", justifyContent: "center" }}>
                     <button type="button" className="btn-ink" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
                       View Case Studies <FiArrowRight />
                     </button>
-                    <a href="https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8Aview" target="_blank" rel="noreferrer" className="btn-outline">
-                      <FiDownload /> Resume
-                    </a>
+                    <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-outline"><FiDownload /> Resume</a>
                   </div>
                 </div>
               )}
 
-              {/* ── TABLET HERO ── */}
+              {/* TABLET HERO */}
               {isTablet && (
                 <div style={{ padding: "100px 48px 60px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "end", width: "100%" }}>
@@ -688,24 +644,18 @@ export default function Home() {
                         <button type="button" className="btn-ink" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
                           View Case Studies <FiArrowRight />
                         </button>
-                        <a href="https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view" target="_blank" rel="noreferrer" className="btn-outline">
-                          <FiDownload /> Resume
-                        </a>
+                        <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-outline"><FiDownload /> Resume</a>
                       </div>
                     </div>
-                    <motion.img src={profile} alt="Bhavyasri Mudireddy"
-                      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-                      style={{ width: "100%", maxHeight: "60vh", objectFit: "contain", filter: "drop-shadow(0 20px 40px rgba(26,23,20,0.14))", willChange: "transform" }} />
+                    <motion.img src={profile} alt="Bhavyasri Mudireddy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                      style={{ width: "100%", maxHeight: "60vh", objectFit: "contain", filter: "drop-shadow(0 20px 40px rgba(26,23,20,0.14))" }} />
                   </div>
                 </div>
               )}
 
-              {/* ── DESKTOP HERO ── */}
+              {/* DESKTOP HERO */}
               {!isMobile && !isTablet && (
                 <div className="relative z-10 grid min-h-screen items-center" style={{ gridTemplateColumns: "1fr 480px 1fr", paddingTop: 96 }}>
-
-                  {/* LEFT */}
                   <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col justify-center self-center px-10 xl:px-16">
                     <SectionTag>UX Designer · Portfolio</SectionTag>
                     <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(52px,7vw,92px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 28 }}>
@@ -725,16 +675,12 @@ export default function Home() {
                     </div>
                   </motion.div>
 
-                  {/* CENTER */}
-                  <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }} className="relative flex items-end justify-center" style={{ height: "100vh", willChange: "transform" }}>
-                    <motion.img src={profile} alt="Bhavyasri Mudireddy"
-                      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                      style={{ position: "relative", zIndex: 1, height: "85vh", width: "auto", objectFit: "contain", filter: "drop-shadow(0 28px 56px rgba(26,23,20,0.16))", willChange: "transform" }}
+                  <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }} className="relative flex items-end justify-center" style={{ height: "100vh" }}>
+                    <motion.img src={profile} alt="Bhavyasri Mudireddy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                      style={{ position: "relative", zIndex: 1, height: "85vh", width: "auto", objectFit: "contain", filter: "drop-shadow(0 28px 56px rgba(26,23,20,0.16))" }}
                       whileHover={{ scale: 1.015 }} />
                   </motion.div>
 
-                  {/* RIGHT */}
                   <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col justify-center self-center px-10 xl:px-16">
                     <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
                       style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(40px,5vw,76px)", lineHeight: 1.0, letterSpacing: "-0.04em", color: "var(--ink)" }}>
@@ -754,7 +700,7 @@ export default function Home() {
                         </button>
                       </MagneticWrap>
                       <MagneticWrap>
-                        <a href="https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view" target="_blank" rel="noreferrer" className="btn-outline" data-cursor="Open">
+                        <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-outline" data-cursor="Open">
                           <FiDownload /> Resume
                         </a>
                       </MagneticWrap>
@@ -786,7 +732,6 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              {/* Metrics strip */}
               <motion.div className="metrics-strip" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, borderRadius: 16, overflow: "hidden", border: "1px solid var(--sand-light)", marginBottom: 32 }}>
                 {[
@@ -803,7 +748,6 @@ export default function Home() {
                 ))}
               </motion.div>
 
-              {/* Case study cards */}
               <motion.div className="cs-perspective"
                 style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 24 }}
                 initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
@@ -852,7 +796,6 @@ export default function Home() {
                     I'm Bhavyasri, a product designer and frontend engineer focused on guided digital experiences for fintech and healthcare.
                   </p>
                 </div>
-
                 <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2,1fr)" : "repeat(3,1fr)", gap: 20 }}>
                   {[
                     { num: "01", title: "UX Focus", desc: "AI-assisted flows, guided onboarding, interaction clarity, and decision-making support. I center the user at every step — recruiting participants through targeted online communities and personal network for both healthcare and fintech research." },
@@ -867,7 +810,6 @@ export default function Home() {
                     </motion.div>
                   ))}
                 </div>
-
                 <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.55, delay: 0.3 }}
                   style={{ marginTop: 20, borderRadius: 20, border: "1px solid var(--sand-light)", background: "var(--bone)", padding: "24px 28px", display: "flex", alignItems: isMobile ? "flex-start" : "center", flexWrap: "wrap", gap: 20 }}>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", flexShrink: 0 }}>Credentials</p>
@@ -882,7 +824,6 @@ export default function Home() {
                     </div>
                   ))}
                 </motion.div>
-
                 <div style={{ marginTop: 20, borderRadius: 20, border: "1px solid var(--sand-light)", background: "var(--bone)", padding: "24px 28px", display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: 24 }}>
                   <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, color: "var(--gold-pale)", lineHeight: 1, flexShrink: 0 }}>+</p>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.85, color: "var(--stone)", fontWeight: 400 }}>
@@ -904,7 +845,7 @@ export default function Home() {
                     Available for full-time product design roles in <span style={{ color: "var(--sand-light)" }}>fintech, healthcare,</span> or AI-first products. Based in Denton, TX — open to remote.
                   </p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    <a href="https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view" target="_blank" rel="noreferrer" className="btn-gold" data-cursor="Open"><FiDownload /> View Resume</a>
+                    <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-gold" data-cursor="Open"><FiDownload /> View Resume</a>
                     <a href="mailto:bhavyasrireddy267@gmail.com" className="btn-ghost-dark" data-cursor="Mail"><FiMail /> Email Me</a>
                   </div>
                 </div>
@@ -926,7 +867,6 @@ export default function Home() {
                   ))}
                 </div>
               </motion.div>
-
               <footer className="footer-row" style={{ paddingTop: 32, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "var(--stone)", fontWeight: 300 }}>© 2026 Bhavyasri Mudireddy — Product Designer &amp; Frontend Engineer</p>
                 <p style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: 22, color: "var(--sand)" }}>BM</p>
