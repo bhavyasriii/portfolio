@@ -86,7 +86,7 @@ export default function Hero() {
 
           {/* Hero Image */}
           <img
-            src="/case-studies/hero.png"
+            src="/case-studies/fintech/hero.png"
             alt="Fintech App Preview"
             className="relative z-10 w-full max-w-[700px] object-contain"
           />
