@@ -26,6 +26,11 @@ import hotelMotion from "../assets/motion/hotel-motion.mp4";
 import coverHealthcare from "../assets/images/cover-healthcare.png";
 import spotifyMotion from "../assets/motion/spotify-motion.mp4";
 
+import mockup1 from "../assets/images/apple-cs/mockup-1.png";
+import mockup2 from "../assets/images/apple-cs/mockup-2.png";
+import mockup3 from "../assets/images/apple-cs/mockup-3.png";
+import mockup4 from "../assets/images/apple-cs/mockup-4.png";
+
 const RESUME_URL = "https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view";
 
 type CaseStudy = {
@@ -524,6 +529,48 @@ export default function Home() {
   const prevStudy = useCallback(() => setActiveStudyIndex((p) => p === 0 ? interactionStudies.length - 1 : p - 1), [interactionStudies.length]);
   const nextStudy = useCallback(() => setActiveStudyIndex((p) => (p + 1) % interactionStudies.length), [interactionStudies.length]);
 
+  const appleMockups = [
+    { src: mockup1, label: "Current State", desc: "What iOS Look Up looks like today. Definition, Siri Knowledge, Look Up — but no pronunciation anywhere." },
+    { src: mockup2, label: "Redesign", desc: "Pronunciation row added between word and definition. Phonetic spelling on the left, speaker icon on the right. Feels completely native." },
+    { src: mockup3, label: "Active State", desc: "Phonetic text turns blue, waveform appears, speaker icon shows active state. Clear visual feedback that audio is playing." },
+    { src: mockup4, label: "Context Shot", desc: "The full experience in context - long press a word while reading, popup appears with pronunciation right there." },
+  ];
+
+  const [lightbox, setLightbox] = useState<{ src: string; label: string; desc: string; index: number } | null>(null);
+
+  const openLightbox = (mockup: typeof appleMockups[0], index: number) => {
+    setLightbox({ ...mockup, index });
+  };
+
+  const closeLightbox = () => setLightbox(null);
+
+  const prevLightbox = () => {
+    if (!lightbox) return;
+    const prev = (lightbox.index - 1 + appleMockups.length) % appleMockups.length;
+    setLightbox({ ...appleMockups[prev], index: prev });
+  };
+
+  const nextLightbox = () => {
+    if (!lightbox) return;
+    const next = (lightbox.index + 1) % appleMockups.length;
+    setLightbox({ ...appleMockups[next], index: next });
+  };
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") nextLightbox();
+      if (e.key === "ArrowLeft") prevLightbox();
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [lightbox]);
+
   return (
     <>
       <style>{`
@@ -783,7 +830,153 @@ export default function Home() {
             {/* ════ 03 · MOTION ════ */}
             <MotionSection interactionStudies={interactionStudies} activeStudyIndex={activeStudyIndex} setActiveStudyIndex={setActiveStudyIndex} prevStudy={prevStudy} nextStudy={nextStudy} />
 
-            {/* ════ 04 · ABOUT ════ */}
+            {/* ════ 04 · PRODUCT CONCEPTS — Apple Look Up ════ */}
+            <section id="concepts" className="scroll-mt-24 w-full" style={{ background: "var(--bone)", padding: isMobile ? "64px 24px" : isTablet ? "80px 40px" : "112px 80px" }}>
+              <motion.div {...reveal} style={{ marginBottom: 48 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 32, alignItems: "end" }}>
+                  <div>
+                    <SectionTag>04 // Product Thinking</SectionTag>
+                    <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,6vw,80px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 16 }}>
+                      Noticing what's<br /><em style={{ color: "var(--stone)", fontStyle: "italic" }}>missing</em>
+                    </h2>
+                  </div>
+                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.9, color: "var(--stone)", maxWidth: 480, fontWeight: 300 }}>
+                    The best product ideas start with a personal moment of friction. These are self-initiated concepts born from real gaps I noticed in products I use every day.
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Apple Case Study Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 36 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                style={{ borderRadius: 24, border: "1px solid var(--sand-light)", background: "var(--cream)", overflow: "hidden" }}>
+
+                {/* Top label bar */}
+                <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--sand-light)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bone)" }}>
+                  <SectionTag>Product Concept · iOS · 2026</SectionTag>
+                  <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 13, fontStyle: "italic", color: "var(--gold)" }}>Self-initiated</span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 0 }}>
+
+                  {/* LEFT — Story */}
+                  <div style={{ padding: isMobile ? "32px 24px" : "48px 48px", borderRight: isMobile ? "none" : "1px solid var(--sand-light)", borderBottom: isMobile ? "1px solid var(--sand-light)" : "none" }}>
+
+                    <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(24px,3vw,40px)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: 24 }}>
+                      You know the word.<br />
+                      <em style={{ color: "var(--stone)", fontStyle: "italic" }}>But can you say it?</em>
+                    </h3>
+
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300, marginBottom: 16 }}>
+                      I was reading an article when I came across the word <em>"archetype."</em> I long pressed it, tapped Look Up, and got the definition instantly - but had no idea how to say it out loud.
+                    </p>
+
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300, marginBottom: 32 }}>
+                      iOS could tell me what a word meant. It could translate it. But it couldn't tell me how to <em>pronounce</em> it  the one thing I needed most in that moment.
+                    </p>
+
+                    {/* Pull quote */}
+                    <div style={{ borderLeft: "2px solid var(--gold)", paddingLeft: 20, marginBottom: 32 }}>
+                      <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, lineHeight: 1.7, color: "var(--ink-soft)", fontStyle: "italic" }}>
+                        "iOS Look Up gives you meaning. But meaning without pronunciation leaves the word stranded on the page."
+                      </p>
+                    </div>
+
+                    {/* Translate vs Pronunciation comparison */}
+                    <div style={{ marginBottom: 32 }}>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 14 }}>Why Translate doesn't solve this</p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        {[
+                          { label: "Translate", desc: "Converts to another language", icon: "🌐" },
+                          { label: "Pronunciation", desc: "Tells you how to say it in English", icon: "🔊" },
+                        ].map((item) => (
+                          <div key={item.label} style={{ borderRadius: 12, border: "1px solid var(--sand-light)", padding: "16px", background: "var(--bone)" }}>
+                            <p style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</p>
+                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>{item.label}</p>
+                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "var(--stone)", fontWeight: 300, lineHeight: 1.6 }}>{item.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Design principle */}
+                    <div style={{ borderRadius: 16, background: "var(--ink)", padding: "20px 24px", marginBottom: 24 }}>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 10 }}>Design Principle</p>
+                      <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "var(--cream)", lineHeight: 1.5, fontStyle: "italic" }}>
+                        "The best feature feels like it was always there."
+                      </p>
+                    </div>
+
+                    {/* Tags */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {["Figma", "iOS Design", "Product Concept", "2026"].map((tag) => (
+                        <span key={tag} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", border: "1px solid var(--sand-light)", borderRadius: 100, padding: "4px 10px", background: "var(--bone)" }}>{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* RIGHT — Mockups */}
+                  <div style={{ padding: isMobile ? "32px 24px" : "48px 48px", display: "flex", flexDirection: "column", gap: 24 }}>
+
+                    <div>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>The Solution</p>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.8, color: "var(--stone)", fontWeight: 300 }}>
+                        A single pronunciation row added to the existing Look Up popup - phonetic spelling on the left, speaker icon on the right. Zero extra taps. Zero new screens.
+                      </p>
+                    </div>
+
+                    {/* 2x2 Mockup grid — clickable */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      {appleMockups.map((mockup, index) => (
+                        <motion.div key={mockup.label}
+                          whileHover={{ y: -4, scale: 1.02 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                          onClick={() => openLightbox(mockup, index)}
+                          data-cursor="View"
+                          style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--sand-light)", background: "var(--bone)", cursor: "pointer", position: "relative" }}>
+                          <img src={mockup.src} alt={mockup.label} style={{ width: "100%", height: "auto", display: "block" }} loading="lazy" />
+                          {/* Hover overlay */}
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            whileHover={{ opacity: 1 }}
+                            style={{ position: "absolute", inset: 0, background: "rgba(26,23,20,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", color: "#ffffff", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 100, padding: "6px 16px" }}>View ↗</span>
+                          </motion.div>
+                          <div style={{ padding: "10px 14px", borderTop: "1px solid var(--sand-light)" }}>
+                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)" }}>{mockup.label}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "var(--stone)", fontWeight: 300, letterSpacing: "0.04em" }}>
+                      ↑ Click any screen to explore
+                    </p>
+
+                    {/* What's next */}
+                    <div style={{ borderRadius: 16, border: "1px solid var(--sand-light)", padding: "20px 24px", background: "var(--bone)" }}>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 12 }}>What I'd explore next</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {[
+                          "Multiple accent options - American, British, Australian",
+                          "Slow pronunciation mode for language learners",
+                          "Syllable breakdown - arch·e·type highlighted as it plays",
+                        ].map((item) => (
+                          <div key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                            <span style={{ color: "var(--gold)", fontSize: 12, flexShrink: 0, marginTop: 2 }}>→</span>
+                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "var(--stone)", fontWeight: 300, lineHeight: 1.6 }}>{item}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </section>
+
+            {/* ════ 05 · ABOUT ════ */}
             <section id="about" className="scroll-mt-24 w-full" style={{ background: "var(--cream-dark)", padding: isMobile ? "64px 24px" : isTablet ? "80px 40px" : "112px 80px" }}>
               <motion.div {...reveal}>
                 <div style={{ marginBottom: 48, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 32, alignItems: "end" }}>
@@ -816,7 +1009,7 @@ export default function Home() {
                   {[
                     { label: "MS Computer Science", sub: "University of North Texas · May 2025" },
                     { label: "Google UX Design Certificate", sub: "Professional · March 2026" },
-                    { label: "WCAG AAA Implementation", sub: "Certified across enterprise products" },
+                    { label: "WCAG AAA Implementation", sub: "Validated across shipped products" },
                   ].map((cred) => (
                     <div key={cred.label} style={{ display: "flex", flexDirection: "column", gap: 3, borderLeft: "1px solid var(--sand-light)", paddingLeft: 16 }}>
                       <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{cred.label}</span>
@@ -833,7 +1026,7 @@ export default function Home() {
               </motion.div>
             </section>
 
-            {/* ════ 05 · CONTACT ════ */}
+            {/* ════ 06 · CONTACT ════ */}
             <section id="resume" className="scroll-mt-24 w-full" style={{ background: "var(--cream)", padding: isMobile ? "64px 24px 100px" : isTablet ? "80px 40px" : "112px 80px" }}>
               <motion.div {...reveal} className="contact-grid"
                 style={{ borderRadius: 24, background: "var(--ink)", padding: isMobile ? "36px 24px" : "64px 56px", display: "grid", gap: 40, gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr" }}>
@@ -874,6 +1067,101 @@ export default function Home() {
             </section>
 
             <MobileCTAStrip />
+
+            {/* ════ LIGHTBOX MODAL ════ */}
+            <AnimatePresence>
+              {lightbox && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  onClick={closeLightbox}
+                  style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(26,23,20,0.92)", backdropFilter: "blur(20px)", display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "20px" : "40px" }}>
+
+            {/* Modal content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 24 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 20 : 40, alignItems: "center", maxWidth: 900, width: "100%", maxHeight: "90vh" }}>
+
+              {/* Image */}
+              <div style={{ flex: "0 0 auto", maxHeight: isMobile ? "55vh" : "80vh", display: "flex", alignItems: "center" }}>
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={lightbox.label}
+                    src={lightbox.src}
+                    alt={lightbox.label}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ height: isMobile ? "55vh" : "80vh", width: "auto", objectFit: "contain", borderRadius: 20, boxShadow: "0 40px 100px rgba(0,0,0,0.6)" }}
+                  />
+                </AnimatePresence>
+              </div>
+
+              {/* Info panel */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20, textAlign: isMobile ? "center" : "left" }}>
+
+                {/* Counter */}
+                <p style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: 13, color: "var(--gold)", letterSpacing: "0.06em" }}>
+                  {lightbox.index + 1} / {appleMockups.length}
+                </p>
+
+                {/* Label */}
+                <AnimatePresence mode="wait">
+                  <motion.div key={lightbox.label + "-info"}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}>
+                    <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px,3vw,36px)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--cream)", marginBottom: 16 }}>
+                      {lightbox.label}
+                    </h3>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300 }}>
+                      {lightbox.desc}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Navigation */}
+                <div style={{ display: "flex", gap: 12, justifyContent: isMobile ? "center" : "flex-start", marginTop: 8 }}>
+                  <button type="button" onClick={prevLightbox}
+                    style={{ width: 44, height: 44, borderRadius: "50%", border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--gold)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--gold)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#3d3830"; (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)"; }}>
+                    ←
+                  </button>
+                  <button type="button" onClick={nextLightbox}
+                    style={{ width: 44, height: 44, borderRadius: "50%", border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--gold)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--gold)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#3d3830"; (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)"; }}>
+                    →
+                  </button>
+                  <button type="button" onClick={closeLightbox}
+                    style={{ height: 44, paddingInline: 20, borderRadius: 100, border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--cream)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--cream)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#3d3830"; (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)"; }}>
+                    Close · Esc
+                  </button>
+                </div>
+
+                {/* Dot indicators */}
+                <div style={{ display: "flex", gap: 8, justifyContent: isMobile ? "center" : "flex-start" }}>
+                  {appleMockups.map((_, i) => (
+                    <button key={i} type="button" onClick={() => setLightbox({ ...appleMockups[i], index: i })}
+                      style={{ width: i === lightbox.index ? 24 : 8, height: 8, borderRadius: 100, background: i === lightbox.index ? "var(--gold)" : "#3d3830", border: "none", cursor: "pointer", transition: "width 0.3s, background 0.3s", padding: 0 }} />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
           </main>
         </PageTransition>
       </div>
