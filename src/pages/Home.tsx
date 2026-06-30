@@ -1,1170 +1,612 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import Navbar from "../components/Navbar";
-import profile from "../assets/profile-cutout.png";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useSpring,
-  useMotionValue,
-  type Variants,
-} from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaGithub, FaLinkedinIn } from "react-icons/fa";
-import {
-  FiArrowRight,
-  FiDownload,
-  FiMail,
-  FiChevronLeft,
-  FiChevronRight,
-  FiCalendar,
-} from "react-icons/fi";
-
-import airpodsMotion from "../assets/motion/airpods-motion.mp4";
-import aiOutfitMotion from "../assets/motion/AI_Outfit.mp4";
-import hotelMotion from "../assets/motion/hotel-motion.mp4";
+import { AnimatePresence, motion } from "framer-motion";
+import Navbar from "../components/Navbar";
 import coverHealthcare from "../assets/images/cover-healthcare.png";
-import spotifyMotion from "../assets/motion/spotify-motion.mp4";
-
+import fintechImage from "../assets/images/Mobile.png";
+import profilePhoto from "../assets/profile-cutout.png";
+import gdCover from "../assets/images/gdinfotek/Highfi-Homepage.png";
 import mockup1 from "../assets/images/apple-cs/mockup-1.png";
-import mockup2 from "../assets/images/apple-cs/mockup-2.png";
-import mockup3 from "../assets/images/apple-cs/mockup-3.png";
-import mockup4 from "../assets/images/apple-cs/mockup-4.png";
+import jobflowCover from "../assets/images/jobflowCover.png";
 
-const RESUME_URL = "https://drive.google.com/file/d/1bzvDUR8B3nVfuUe_ViciH6ouNgumsJ8A/view";
+const RESUME_URL = "/resume.pdf";
+
+type PillKey = "research" | "shipped" | "code" | "available" | null;
 
 type CaseStudy = {
-  id: string; title: string; category: string;
-  summary: string; image: string; route?: string; year: string;
-};
-type InteractionStudy = {
-  id: string; title: string; category: string;
-  summary: string; videoSrc: string; format: "desktop" | "mobile";
+  tag: string;
+  year: string;
+  title: ReactNode;
+  desc: string;
+  metric: string;
+  metricText: string;
+  small: string;
+  image: string;
+  route: string;
+  bgClass: string;
+  note: string;
 };
 
-/* ─────────────────────────────────────────
-   RESPONSIVE HOOK
-───────────────────────────────────────── */
-function useBreakpoint() {
-  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth);
-    window.addEventListener("resize", handler, { passive: true });
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-  return {
-    isMobile: width < 768,
-    isTablet: width >= 768 && width < 1024,
-    isDesktop: width >= 1024,
-    width,
+function PillAnswer({ active }: { active: PillKey }) {
+  const answers: Record<NonNullable<PillKey>, { label: string; text: ReactNode }> = {
+    research: {
+      label: "Research lens",
+      text: (
+        <>
+          I recruit real participants, not convenience samples. <strong>70+ moderated interviews</strong> across healthcare and fintech. I look for the gap between what users say, what they do, and what the product assumes. In both case studies the blocker wasn't the interface, it was vocabulary and trust.
+        </>
+      ),
+    },
+    shipped: {
+      label: "What I've built",
+      text: (
+        <>
+          Shipped work lives at <strong>GD Infotek</strong>, full website redesign delivered and approved, implementation in progress. Research case studies are self-initiated and validated through moderated usability testing. This portfolio is <strong>React + TypeScript</strong>, live on Vercel.
+        </>
+      ),
+    },
+    code: {
+      label: "Design engineering",
+      text: (
+        <>
+          React and TypeScript, this portfolio included. I can prototype beyond static screens: interaction logic, responsive behavior, motion, and accessibility. When a developer pushes back on a component, I can open the code. <em>WCAG AAA</em> validated across shipped work.
+        </>
+      ),
+    },
+    available: {
+      label: "Available for Work",
+      text: (
+        <div className="available-row">
+          <span className="green-dot" />
+          Available for full-time product design roles. Based in Denton TX, open to relocate.
+        </div>
+      ),
+    },
   };
-}
 
-/* ─────────────────────────────────────────
-   LOAD BAR
-───────────────────────────────────────── */
-function LoadBar() {
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setLoaded(true), 1200); return () => clearTimeout(t); }, []);
   return (
-    <AnimatePresence>
-      {!loaded && (
-        <motion.div style={{ position: "fixed", top: 0, left: 0, height: 2, background: "linear-gradient(90deg, transparent, #c9a96e, transparent)", zIndex: 10000, boxShadow: "0 0 20px rgba(201,169,110,0.6)" }}
-          initial={{ width: "0%", opacity: 1 }} animate={{ width: "100%", opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut" }} />
+    <AnimatePresence mode="wait">
+      {active && (
+        <motion.div
+          key={active}
+          className="pill-answer"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.24 }}
+        >
+          <div className="pill-answer-label">{answers[active].label}</div>
+          <div className="pill-answer-text">{answers[active].text}</div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
-/* ─────────────────────────────────────────
-   LUXURY TYPEWRITER
-───────────────────────────────────────── */
-function LuxuryTypewriter({ text, delay = 0.5, speed = 40, style }: { text: string; delay?: number; speed?: number; style?: React.CSSProperties }) {
-  const [displayed, setDisplayed] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setIsTyping(true), delay * 1000); return () => clearTimeout(t); }, [delay]);
-  useEffect(() => {
-    if (!isTyping) return;
-    let index = 0;
-    const interval = setInterval(() => {
-      setDisplayed(text.slice(0, index + 1));
-      index += 1;
-      if (index >= text.length) clearInterval(interval);
-    }, speed);
-    return () => clearInterval(interval);
-  }, [isTyping, text, speed]);
-  return (
-    <span style={style}>
-      {displayed}
-      {isTyping && displayed.length < text.length && (
-        <motion.span animate={{ opacity: [1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity }}
-          style={{ marginLeft: "2px", color: "#c9a96e", textShadow: "0 0 8px rgba(201,169,110,0.5)" }}>|</motion.span>
-      )}
-    </span>
-  );
-}
+const caseStudies: CaseStudy[] = [
+  {
+    tag: "Healthcare UX",
+    year: "2026",
+    title: (
+      <>
+        Patients weren't lost in the UI.
+        <br />
+        <span>They didn't know what doctor they needed.</span>
+      </>
+    ),
+    desc: "A vocabulary problem disguised as a booking problem. 30 patient interviews revealed the real friction, specialist terminology patients had never heard. Redesigned around symptom-first guidance.",
+    metric: "92%",
+    metricText: "task success rate",
+    small: "Tested with 12 participants · Maze · moderated sessions",
+    image: coverHealthcare,
+    route: "/case-study/healthcare",
+    bgClass: "health-bg",
+    note: "Self-initiated research · validated through moderated usability testing",
+  },
+  {
+    tag: "Fintech UX",
+    year: "2026",
+    title: (
+      <>
+        The interface was clear.
+        <br />
+        <span>The anxiety wasn't about the UI at all.</span>
+      </>
+    ),
+    desc: "40 user interviews surfaced spending anxiety as the real blocker, not confusion. Subscriptions felt like money disappearing, not decisions being made. Redesigned using agent-aware UX patterns.",
+    metric: "50%",
+    metricText: "reduction in decision friction",
+    small: "Tested with 2 participants · moderated usability testing · NPS improvement confirmed",
+    image: fintechImage,
+    route: "/case-study/fintech",
+    bgClass: "fintech-bg",
+    note: "Self-initiated research · validated through moderated usability testing",
+  },
+  {
+    tag: "Company Project · NDA",
+    year: "2026",
+    title: (
+      <>
+        The website was live.
+        <br />
+        <span>Nobody knew what the company actually did.</span>
+      </>
+    ),
+    desc: "Full homepage and enrollment form redesign for an active IT staffing firm. Heuristic audit identified broken IA, unclear audience hierarchy, and copy errors. Restructured client-first with a complete visual system.",
+    metric: "5/5",
+    metricText: "critical usability issues resolved",
+    small: "Heuristic audit · stakeholder approved · implementation pending",
+    image: gdCover,
+    route: "/case-study/gdinfotek",
+    bgClass: "gd-bg",
+    note: "Company project · GD Infotek LLC · Product Designer Intern",
+  },
+];
 
-const Typewriter = LuxuryTypewriter;
+const conceptItems = [
+  {
+    id: "apple",
+    type: "Product Thinking",
+    name: "Apple iOS Look Up",
+    hook: "iOS can define a word. It can't say it.",
+    desc: "A pronunciation feature iOS overlooked, zero new screens, one new row.",
+    bg: "linear-gradient(135deg, rgba(155,142,196,.16), rgba(255,255,255,.94))",
+    emoji: "📱",
+    route: "/case-study/apple-concept",
+    image: mockup1,
+  },
+  {
+    id: "jobflow",
+    type: "Interaction Study + Research",
+    name: "JobFlow",
+    hook: "The job tracker people don't abandon.",
+    desc: "8 user interviews. One finding: trackers die from upkeep cost, not missing features. Designed a one-tap card and built it in React.",
+    bg: "linear-gradient(135deg, #eef3ff, #ffffff)",
+    emoji: "📋",
+    route: "/case-study/jobflow",
+    image: jobflowCover,
+  },
+];
 
-/* ─────────────────────────────────────────
-   PARTICLE FLOAT
-───────────────────────────────────────── */
-function ParticleFloat() {
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; duration: number; delay: number; depth: number }>>([]);
-  useEffect(() => {
-    setParticles(Array.from({ length: 8 }, (_, i) => ({ id: i, x: Math.random() * 100, y: Math.random() * 100, size: 2 + Math.random() * 4, duration: 20 + Math.random() * 10, delay: i * 0.3, depth: Math.random() * 100 })));
-  }, []);
-  return (
-    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 1 }}>
-      {particles.map((p) => (
-        <motion.div key={p.id} style={{ position: "fixed", width: p.size, height: p.size, borderRadius: "50%", background: `rgba(201,169,110,${0.3 - p.depth / 500})`, left: `${p.x}%`, top: `${p.y}%`, filter: "blur(0.5px)" }}
-          animate={{ y: [0, -100], opacity: [0, 0.6, 0] }} transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }} />
-      ))}
-    </div>
-  );
-}
+const storyBeats = [
+  {
+    year: "Accenture",
+    title: "I started as a developer.",
+    body: "Not because I wanted to write code, but because I wanted to understand how large teams build things together. The mentorship, the org structure, the way decisions moved through a hundred people. I was fascinated by that.",
+  },
+  {
+    year: "The moment",
+    title: "Then I moved to the US for my master's.",
+    body: "Early on I tried to book a medical appointment online. The portal was a mess. My first instinct was simple, just fix the UI. Clean up the screens, reorganize the layout. That should fix it. It didn't. Every step still felt heavy. Not confusing, exhausting. Something deeper was broken.",
+  },
+  {
+    year: "The pivot",
+    title: "I started researching people, not layouts.",
+    body: "Where were they getting stuck? Why? What were they actually trying to do? I discovered there were entire methods built around finding exactly that. Tools for identifying where the real pain lives. That discovery changed everything for me.",
+  },
+  {
+    year: "Childhood",
+    title: "Looking back, it makes sense.",
+    body: "As a kid I spent hours playing video games. What I loved wasn't the graphics, it was how those games never made you feel lost. No instructions needed. Every screen told you exactly what to do next. That was great UX before I had a word for it. I've been chasing that feeling ever since.",
+  },
+  {
+    year: "How I think",
+    title: "I read to understand what people can't say.",
+    body: "Robert Greene's Mastery. Books about how people think and feel. Not for career reasons, because the people I love sometimes struggle to say what they need. I've always wanted to understand what's underneath the words. That same instinct makes me a better researcher.",
+  },
+];
 
-/* ─────────────────────────────────────────
-   SCROLL REVEAL 3D
-───────────────────────────────────────── */
-function ScrollReveal3D({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setInView(true); }, { threshold: 0.2 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return (
-    <motion.div ref={ref} style={{ perspective: "1200px" }} initial={{ opacity: 0, rotateX: 15, y: 40 }} animate={inView ? { opacity: 1, rotateX: 0, y: 0 } : {}} transition={{ duration: 0.9, delay, ease: [0.25, 0.46, 0.45, 0.94] }}>
-      {children}
-    </motion.div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   GLOW BUTTON
-───────────────────────────────────────── */
-function GlowButton({ text, onClick }: { text: string; onClick?: () => void }) {
-  const [isHovered, setIsHovered] = useState(false);
-  return (
-    <motion.button style={{ padding: "12px 32px", background: "rgba(201,169,110,0.1)", border: "1px solid rgba(201,169,110,0.3)", color: "#c9a96e", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "500", position: "relative", overflow: "hidden" }}
-      onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} onClick={onClick} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-      <motion.div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle, rgba(201,169,110,0.2) 0%, transparent 70%)", pointerEvents: "none" }} animate={isHovered ? { opacity: [0, 1, 0.5] } : { opacity: 0 }} transition={{ duration: 1 }} />
-      <span style={{ position: "relative", zIndex: 1 }}>{text}</span>
-    </motion.button>
-  );
-}
-
-export { LoadBar, LuxuryTypewriter, ParticleFloat, ScrollReveal3D, GlowButton };
-
-/* ─────────────────────────────────────────
-   CUSTOM CURSOR
-───────────────────────────────────────── */
-function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const [label, setLabel] = useState("View");
-  const pos = useRef({ x: -200, y: -200 });
-  const raf = useRef<number>(0);
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => { pos.current = { x: e.clientX, y: e.clientY }; };
-    const onOver = (e: MouseEvent) => { const el = (e.target as HTMLElement).closest("[data-cursor]") as HTMLElement | null; if (el) { setHovered(true); setLabel(el.dataset.cursor ?? "View"); } };
-    const onOut = (e: MouseEvent) => { if ((e.target as HTMLElement).closest("[data-cursor]")) setHovered(false); };
-    const loop = () => { if (cursorRef.current) cursorRef.current.style.transform = `translate(${pos.current.x}px,${pos.current.y}px)`; raf.current = requestAnimationFrame(loop); };
-    raf.current = requestAnimationFrame(loop);
-    window.addEventListener("mousemove", onMove); window.addEventListener("mouseover", onOver); window.addEventListener("mouseout", onOut);
-    return () => { cancelAnimationFrame(raf.current); window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseover", onOver); window.removeEventListener("mouseout", onOut); };
-  }, []);
-  return (
-    <div ref={cursorRef} style={{ position: "fixed", top: 0, left: 0, zIndex: 9999, pointerEvents: "none", willChange: "transform" }}>
-      <motion.div animate={{ width: hovered ? 82 : 12, height: hovered ? 82 : 12, x: hovered ? -41 : -6, y: hovered ? -41 : -6, backgroundColor: hovered ? "rgba(201,169,110,0.94)" : "rgba(26,23,20,0.78)", borderRadius: "50%" }} transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <AnimatePresence>
-          {hovered && (<motion.span key="label" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={{ duration: 0.16 }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase", color: "#1a1714", whiteSpace: "nowrap" }}>{label} ↗</motion.span>)}
-        </AnimatePresence>
-      </motion.div>
-    </div>
-  );
-}
-
-function CursorTrail() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const position = useRef({ x: -100, y: -100 });
-  const raf = useRef<number>(0);
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => { position.current = { x: e.clientX, y: e.clientY }; };
-    const animate = () => {
-      if (containerRef.current) {
-        const dots = Array.from(containerRef.current.children) as HTMLElement[];
-        dots.forEach((dot) => { dot.style.transform = `translate(${position.current.x - dot.clientWidth / 2}px, ${position.current.y - dot.clientHeight / 2}px)`; });
-      }
-      raf.current = requestAnimationFrame(animate);
-    };
-    window.addEventListener("mousemove", onMouseMove);
-    raf.current = requestAnimationFrame(animate);
-    return () => { window.removeEventListener("mousemove", onMouseMove); cancelAnimationFrame(raf.current); };
-  }, []);
-  return (
-    <div ref={containerRef} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9998 }}>
-      {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} style={{ position: "fixed", width: 12 - index * 2, height: 12 - index * 2, borderRadius: "50%", background: "rgba(201,169,110,0.24)", pointerEvents: "none", transform: "translate(-9999px,-9999px)", transition: "transform 0.16s ease-out" }} />
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   PROGRESS BAR
-───────────────────────────────────────── */
-function ProgressBar() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.5 });
-  return <motion.div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, transformOrigin: "left", background: "#c9a96e", zIndex: 300, scaleX }} />;
-}
-
-/* ─────────────────────────────────────────
-   NAVBAR WRAPPER
-───────────────────────────────────────── */
-function NavbarWrapper() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const handler = () => setScrolled(window.scrollY > 80); window.addEventListener("scroll", handler, { passive: true }); return () => window.removeEventListener("scroll", handler); }, []);
-  return (
-    <motion.div animate={{ borderBottomColor: scrolled ? "rgba(212,196,174,0.55)" : "transparent" }} transition={{ duration: 0.3 }} style={{ position: "relative", zIndex: 100, borderBottom: "1px solid transparent", backdropFilter: scrolled ? "blur(20px)" : "blur(8px)" }}>
-      <Navbar />
-    </motion.div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   MARQUEE STRIP
-───────────────────────────────────────── */
-function MarqueeStrip() {
-  const items = ["UI/UX Design", "User Research", "Motion Design", "Interaction Design", "Figma", "React", "Usability Testing", "Wireframing", "Prototyping"];
-  const repeated = [...items, ...items, ...items];
-  const [paused, setPaused] = useState(false);
-  return (
-    <div style={{ overflow: "hidden", borderTop: "1px solid #e2ddd6", borderBottom: "1px solid #e2ddd6", background: "#ede8e0", padding: "12px 0" }} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <motion.div style={{ display: "flex", gap: 56, whiteSpace: "nowrap" }} animate={{ x: paused ? undefined : ["0%", "-33.33%"] }} transition={{ duration: 34, repeat: Infinity, ease: "linear" }}>
-        {repeated.map((item, i) => (
-          <span key={i} style={{ fontFamily: "'DM Serif Display', serif", fontSize: 13, fontStyle: "italic", color: paused ? "var(--ink-soft)" : "#8a7d6b", display: "inline-flex", alignItems: "center", gap: 52, transition: "color 0.3s" }}>
-            {item}<span style={{ fontStyle: "normal", color: "#c9b89e", fontSize: 10 }}>✦</span>
-          </span>
-        ))}
-      </motion.div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   SECTION TAG
-───────────────────────────────────────── */
-function SectionTag({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
-  return <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: light ? "#7a7065" : "#9a8f82" }}>{children}</p>;
-}
-
-const reveal = {
-  initial: { opacity: 0, y: 32 }, whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.1 }, transition: { duration: 0.82, ease: [0.22, 1, 0.36, 1] as const },
-};
-
-/* ─────────────────────────────────────────
-   MAGNETIC WRAP
-───────────────────────────────────────── */
-function MagneticWrap({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0); const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 350, damping: 28, mass: 0.8 });
-  const sy = useSpring(y, { stiffness: 350, damping: 28, mass: 0.8 });
-  const onMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width / 2); const dy = e.clientY - (r.top + r.height / 2);
-    if (Math.sqrt(dx * dx + dy * dy) < 80) { x.set(dx * 0.35); y.set(dy * 0.35); }
-  };
-  return (
-    <motion.div ref={ref} style={{ x: sx, y: sy, display: "inline-flex" }} onMouseMove={onMove} onMouseLeave={() => { x.set(0); y.set(0); }}>
-      {children}
-    </motion.div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   TILT CARD
-───────────────────────────────────────── */
-function TiltCard({ children, style, className, onClick, variants, "data-cursor": dataCursor }:
-  { children: React.ReactNode; style?: React.CSSProperties; className?: string; onClick?: () => void; variants?: Variants; "data-cursor"?: string; }) {
-  const ref = useRef<HTMLElement>(null);
-  const rotX = useMotionValue(0); const rotY = useMotionValue(0);
-  const springRotX = useSpring(rotX, { stiffness: 200, damping: 24 });
-  const springRotY = useSpring(rotY, { stiffness: 200, damping: 24 });
-  const onMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width; const py = (e.clientY - r.top) / r.height;
-    rotX.set((py - 0.5) * -16); rotY.set((px - 0.5) * 16);
-  };
-  const onLeave = () => { rotX.set(0); rotY.set(0); };
-  return (
-    <motion.article ref={ref as React.Ref<HTMLElement>} variants={variants} className={className} data-cursor={dataCursor}
-      style={{ rotateX: springRotX, rotateY: springRotY, transformStyle: "preserve-3d", position: "relative", ...style }}
-      whileHover={{ y: -6 }} onClick={onClick} onMouseMove={onMove} onMouseLeave={onLeave}>
-      {children}
-    </motion.article>
-  );
-}
-
-/* ─────────────────────────────────────────
-   STAT COUNT-UP
-───────────────────────────────────────── */
-function StatCountUp({ stat }: { stat: string }) {
-  const match = stat.match(/^(\d+)(.*)$/);
-  const num = match ? parseInt(match[1]) : 0;
-  const suffix = match ? match[2] : stat;
-  const ref = useRef<HTMLSpanElement>(null);
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting && !started) setStarted(true); }, { threshold: 0.5 });
-    obs.observe(ref.current); return () => obs.disconnect();
-  }, [started]);
-  useEffect(() => {
-    if (!started) return;
-    const startTime = performance.now();
-    const tick = (now: number) => {
-      const progress = Math.min((now - startTime) / 1400, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * num));
-      if (progress < 1) requestAnimationFrame(tick); else setCount(num);
-    };
-    requestAnimationFrame(tick);
-  }, [started, num]);
-  return <span ref={ref}>{count}{suffix}</span>;
-}
-
-/* ─────────────────────────────────────────
-   MOBILE CTA STRIP
-───────────────────────────────────────── */
-function MobileCTAStrip() {
-  return (
-    <>
-      <style>{`@media (min-width: 769px) { .mobile-cta-strip { display: none !important; } }`}</style>
-      <div className="mobile-cta-strip" style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200, background: "rgba(26,23,20,0.96)", backdropFilter: "blur(16px)", borderTop: "1px solid #2d2a26", padding: "12px 20px 20px", display: "flex", gap: 10 }}>
-        <a href={RESUME_URL} target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#c9a96e", color: "#1a1714", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>View Resume</a>
-        <a href="mailto:bhavyasrireddy267@gmail.com" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: "var(--sand)", border: "1px solid #2d2a26", borderRadius: 100, padding: "13px 0", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", textDecoration: "none" }}>Email Me</a>
-      </div>
-    </>
-  );
-}
-
-/* ─────────────────────────────────────────
-   PAGE TRANSITION
-───────────────────────────────────────── */
-function PageTransition({ children }: { children: React.ReactNode }) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
-      {children}
-    </motion.div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   MOTION SECTION
-───────────────────────────────────────── */
-type MotionSectionProps = {
-  interactionStudies: InteractionStudy[];
-  activeStudyIndex: number;
-  setActiveStudyIndex: React.Dispatch<React.SetStateAction<number>>;
-  prevStudy: () => void;
-  nextStudy: () => void;
-};
-
-function MotionSection({ interactionStudies, activeStudyIndex, setActiveStudyIndex, prevStudy, nextStudy }: MotionSectionProps) {
-  const activeStudy = interactionStudies[activeStudyIndex];
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const { isMobile, isTablet } = useBreakpoint();
-  const sectionRef = useRef<HTMLElement>(null);
-  const pad = (n: number) => String(n + 1).padStart(2, "0");
-
-  return (
-    <section id="interactions" ref={sectionRef} className="scroll-mt-24 w-full"
-      style={{ background: "#1a1714", position: "relative" }}
-      onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-      onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-
-      {!isMobile && (
-        <motion.div animate={{ x: mousePos.x, y: mousePos.y, opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.4 }}
-          transition={{ type: "spring", stiffness: 500, damping: 40, mass: 0.4 }}
-          style={{ position: "fixed", top: 0, left: 0, width: 20, height: 20, borderRadius: "50%", background: "white", mixBlendMode: "difference", pointerEvents: "none", zIndex: 9990, translateX: "-50%", translateY: "-50%" }} />
-      )}
-
-      <div style={{ padding: isMobile ? "48px 24px 32px" : "80px 48px 40px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", borderBottom: "1px solid #2a2520" }}>
-        <div>
-          <SectionTag light>03 // Motion</SectionTag>
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(32px,5.5vw,72px)", lineHeight: 0.88, letterSpacing: "-0.03em", color: "var(--cream)", marginTop: 16 }}>
-            Motion with<br /><em style={{ color: "var(--sand)", fontStyle: "italic" }}>Intention</em>
-          </h2>
-        </div>
-        {!isMobile && <div aria-hidden style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(80px,12vw,160px)", lineHeight: 1, letterSpacing: "-0.06em", color: "transparent", WebkitTextStroke: "1px #2d2a26", opacity: 0.6, userSelect: "none", paddingBottom: 4 }}>03</div>}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: isMobile || isTablet ? "1fr" : "4fr 7fr", borderBottom: "1px solid #2a2520" }}>
-        <div style={{ position: isMobile || isTablet ? "relative" : "sticky", top: 128, alignSelf: "start", borderRight: isMobile || isTablet ? "none" : "1px solid #2a2520", borderBottom: isMobile || isTablet ? "1px solid #2a2520" : "none", background: "#1a1714", padding: isMobile ? "32px 24px" : "48px 40px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: isMobile ? "auto" : 600 }}>
-          <div>
-            <div aria-hidden style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(48px,8vw,100px)", lineHeight: 1, letterSpacing: "-0.06em", color: "transparent", WebkitTextStroke: "1px #2d2a26", userSelect: "none", marginBottom: 28 }}>{pad(activeStudyIndex)}</div>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeStudy.id + "-brief"} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 15 }} transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--sage)", marginBottom: 14 }}>{activeStudy.category}</p>
-                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(20px,2.8vw,34px)", lineHeight: 1.15, letterSpacing: "-0.025em", color: "var(--cream)", marginBottom: 20 }}>{activeStudy.title}</h3>
-                <div style={{ height: 1, background: "linear-gradient(to right, #c9a96e, transparent)", marginBottom: 20, width: "72%" }} />
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300, marginBottom: 28 }}>{activeStudy.summary}</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {[activeStudy.format === "mobile" ? "Mobile" : "Desktop", activeStudy.category, "2026", "Framer Motion"].map((tag) => (
-                    <span key={tag} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", background: "#252220", border: "1px solid #2d2a26", borderRadius: 100, padding: "4px 10px" }}>{tag}</span>
-                  ))}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 48 }}>
-            <div style={{ display: "flex", gap: 8 }}>
-              {[{ fn: prevStudy, label: "Previous", Icon: FiChevronLeft }, { fn: nextStudy, label: "Next", Icon: FiChevronRight }].map(({ fn, label, Icon }) => (
-                <button key={label} type="button" onClick={fn} aria-label={label}
-                  style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, cursor: "pointer" }}>
-                  <Icon />
-                </button>
-              ))}
-            </div>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: 14 }}>
-              <span style={{ color: "var(--gold)" }}>{activeStudyIndex + 1}</span>
-              <span style={{ margin: "0 6px", color: "#2d2a26" }}>/</span>
-              <span style={{ color: "#3d3830" }}>{interactionStudies.length}</span>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ padding: isMobile ? "24px" : "40px", display: "flex", flexDirection: "column" }}>
-          <div style={{ background: "#0d0c0a", borderRadius: 16, border: "1px solid #252220", overflow: "hidden", position: "relative", flex: 1, minHeight: isMobile ? 320 : 560, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10, borderBottom: "1px solid #1f1c18", background: "rgba(13,12,10,0.9)", backdropFilter: "blur(12px)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--sage)", display: "inline-block" }} />
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "#5a5248" }}>{activeStudy.format === "mobile" ? "Mobile Prototype" : "Desktop Prototype"}</span>
-              </div>
-              <AnimatePresence mode="wait">
-                <motion.span key={activeStudy.id + "-counter"} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: 11, color: "#3d3830" }}>
-                  {pad(activeStudyIndex)} / {String(interactionStudies.length).padStart(2, "0")}
-                </motion.span>
-              </AnimatePresence>
-            </div>
-            <AnimatePresence mode="wait">
-              <motion.div key={activeStudy.id + "-video"} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                style={{ position: "absolute", inset: 0, top: 42, display: "flex", alignItems: "center", justifyContent: "center", padding: activeStudy.format === "mobile" ? "28px 40px 24px" : "20px 24px" }}>
-                {activeStudy.format === "mobile" ? (
-                  <div style={{ height: "100%", maxHeight: 500, aspectRatio: "9 / 19", borderRadius: 16, overflow: "hidden", border: "1px solid #2d2a26", boxShadow: "0 24px 60px rgba(0,0,0,0.55)", flexShrink: 0 }}>
-                    <video src={activeStudy.videoSrc} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                  </div>
-                ) : (
-                  <video src={activeStudy.videoSrc} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", borderRadius: 8 }} />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ borderTop: "1px solid #252220", display: "grid", gridTemplateColumns: isMobile ? `repeat(${interactionStudies.length}, minmax(140px, 1fr))` : `repeat(${interactionStudies.length}, 1fr)`, overflowX: isMobile ? "auto" : "visible" }}>
-        {interactionStudies.map((study, index) => {
-          const isActive = index === activeStudyIndex;
-          return (
-            <button key={study.id} type="button" data-cursor="Play" onClick={() => setActiveStudyIndex(index)}
-              style={{ padding: "22px 24px", borderRight: index < interactionStudies.length - 1 ? "1px solid #252220" : "none", borderBottom: "none", background: isActive ? "rgba(201,169,110,0.06)" : "transparent", borderTop: isActive ? "2px solid var(--gold)" : "2px solid transparent", textAlign: "left", transition: "background 0.3s", position: "relative", cursor: "pointer" }}>
-              <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 11, color: isActive ? "var(--gold)" : "#2d2a26", letterSpacing: "0.06em", marginBottom: 6 }}>{pad(index)}</p>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: isActive ? "var(--sage)" : "#3d3830", marginBottom: 5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{study.category}</p>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: isActive ? "var(--cream)" : "#4a4540", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{study.title}</p>
-              {isActive && <motion.div layoutId="filmstrip-indicator" style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "var(--gold)", opacity: 0.6 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} />}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════════════════════════
-   HOME PAGE
-═══════════════════════════════════════════ */
 export default function Home() {
   const navigate = useNavigate();
-  const [activeStudyIndex, setActiveStudyIndex] = useState(0);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [scrolledPast120, setScrolledPast120] = useState(false);
-  const { isMobile, isTablet } = useBreakpoint();
+  const [activePill, setActivePill] = useState<PillKey>(null);
+  const [fintechImageError, setFintechImageError] = useState(false);
+
+  const togglePill = (key: PillKey) => setActivePill((prev) => (prev === key ? null : key));
 
   useEffect(() => {
-    const handler = () => setScrolledPast120(window.scrollY > 120);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") return; };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, []);
-
-  const caseStudies: CaseStudy[] = useMemo(() => [
-    { id: "01", title: "AI-assisted healthcare appointment booking", category: "UX Case Study", summary: "A guided patient flow that helps users identify the right specialist, understand the next step faster, and book with clarity and less friction.", image: coverHealthcare, route: "/case-study/healthcare", year: "2026" },
-    { id: "02", title: "Fintech UX Case Study - AI-Powered Subscription Optimization", category: "UX Case Study", summary: "A modern finance experience focused on clearer money management, subscription visibility, and a simpler decision-making flow.", image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=1400&q=80&auto=format&fit=crop", route: "/case-study/fintech", year: "2026" },
-  ], []);
-
-  const interactionStudies: InteractionStudy[] = useMemo(() => [
-    { id: "spotify", title: "Feel The Live Music", category: "Motion Study", summary: "A study focused on subtle motion cues, responsiveness, and interface liveliness while preserving readability.", videoSrc: spotifyMotion, format: "desktop" },
-    { id: "airpods", title: "Product storytelling transition", category: "Motion Study", summary: "A motion exploration shaped around reveal, pacing, and hierarchy for a more intentional product presentation.", videoSrc: airpodsMotion, format: "desktop" },
-    { id: "outfit", title: "AI outfit recommendation interaction", category: "Interaction Study", summary: "A guided browsing concept using progressive reveal to make recommendation-driven exploration feel lighter and fluid.", videoSrc: aiOutfitMotion, format: "mobile" },
-    { id: "hotel", title: "Hotel browsing motion study", category: "Motion Study", summary: "A hospitality browsing interaction focused on smoother discovery, stronger content emphasis, and a more polished flow.", videoSrc: hotelMotion, format: "mobile" },
-  ], []);
-
-  useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-    const id = setInterval(() => setActiveStudyIndex((p) => (p + 1) % interactionStudies.length), 5000);
-    return () => clearInterval(id);
-  }, [interactionStudies.length]);
-
-  const prevStudy = useCallback(() => setActiveStudyIndex((p) => p === 0 ? interactionStudies.length - 1 : p - 1), [interactionStudies.length]);
-  const nextStudy = useCallback(() => setActiveStudyIndex((p) => (p + 1) % interactionStudies.length), [interactionStudies.length]);
-
-  const appleMockups = [
-    { src: mockup1, label: "Current State", desc: "What iOS Look Up looks like today. Definition, Siri Knowledge, Look Up — but no pronunciation anywhere." },
-    { src: mockup2, label: "Redesign", desc: "Pronunciation row added between word and definition. Phonetic spelling on the left, speaker icon on the right. Feels completely native." },
-    { src: mockup3, label: "Active State", desc: "Phonetic text turns blue, waveform appears, speaker icon shows active state. Clear visual feedback that audio is playing." },
-    { src: mockup4, label: "Context Shot", desc: "The full experience in context - long press a word while reading, popup appears with pronunciation right there." },
-  ];
-
-  const [lightbox, setLightbox] = useState<{ src: string; label: string; desc: string; index: number } | null>(null);
-
-  const openLightbox = (mockup: typeof appleMockups[0], index: number) => {
-    setLightbox({ ...mockup, index });
-  };
-
-  const closeLightbox = () => setLightbox(null);
-
-  const prevLightbox = () => {
-    if (!lightbox) return;
-    const prev = (lightbox.index - 1 + appleMockups.length) % appleMockups.length;
-    setLightbox({ ...appleMockups[prev], index: prev });
-  };
-
-  const nextLightbox = () => {
-    if (!lightbox) return;
-    const next = (lightbox.index + 1) % appleMockups.length;
-    setLightbox({ ...appleMockups[next], index: next });
-  };
-
-  useEffect(() => {
-    if (!lightbox) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowRight") nextLightbox();
-      if (e.key === "ArrowLeft") prevLightbox();
-    };
-    window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [lightbox]);
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
-        :root {
-          --cream: #f5f1eb; --cream-dark: #ede8e0; --bone: #fdfcfa;
-          --ink: #1a1714; --ink-soft: #3d3830; --stone: #7a7065;
-          --sand: #b8a48a; --sand-light: #d4c4ae; --gold: #c9a96e;
-          --gold-pale: #e8d9c0; --sage: #03b450;
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        *{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth;background:#f8f3ea}
+        body{background:#f8f3ea}
+
+        :root{
+          --ink:#181512;
+          --muted:#746d64;
+          --soft:#f8f3ea;
+          --paper:#fffaf2;
+          --paper-2:#f0e8dc;
+          --line:rgba(24,21,18,.11);
+          --purple:#8d78bd;
+          --purple-deep:#2b233f;
+          --yellow:#f4d15f;
+          --green:#22c55e;
+          --shadow:0 24px 80px rgba(51,35,20,.12);
         }
-        body { background: var(--cream); margin: 0; }
-        @media (hover: none) { *, *::before, *::after { cursor: auto !important; } }
-        @media (hover: hover) { *, *::before, *::after { cursor: none !important; } }
-        .btn-ink { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--cream); padding: 14px 28px; border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.10em; text-transform: uppercase; border: none; text-decoration: none; transition: background .25s, transform .2s; cursor: pointer; }
-        .btn-ink:hover { background: var(--ink-soft); transform: translateY(-2px); }
-        .btn-outline { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--ink-soft); padding: 13px 24px; border-radius: 100px; border: 1px solid var(--sand-light); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.10em; text-transform: uppercase; text-decoration: none; transition: border-color .2s, background .2s, transform .2s; }
-        .btn-outline:hover { border-color: var(--sand); background: var(--cream-dark); transform: translateY(-2px); }
-        .btn-gold { display: inline-flex; align-items: center; gap: 8px; background: var(--gold); color: var(--ink); padding: 14px 26px; border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.10em; text-transform: uppercase; border: none; text-decoration: none; transition: background .2s, transform .2s; }
-        .btn-gold:hover { background: #d4b07e; transform: translateY(-2px); }
-        .btn-ghost-dark { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--sand); padding: 14px 26px; border-radius: 100px; border: 1px solid #2d2a26; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.10em; text-transform: uppercase; text-decoration: none; transition: background .2s, transform .2s; }
-        .btn-ghost-dark:hover { background: #1f1c18; transform: translateY(-2px); }
-        .cs-card-border { height: 2px; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 0.42s cubic-bezier(0.22,1,0.36,1); }
-        .cs-card-wrap:hover .cs-card-border { transform: scaleX(1); }
-        .contact-link-item { display: flex; align-items: center; gap: 16px; border: 1px solid #2d2a26; border-radius: 16px; padding: 20px 24px; text-decoration: none; transition: background .2s; }
-        .contact-link-item:hover { background: #1f1c18; }
-        .contact-link-arrow { margin-left: auto; color: #3d3830; font-size: 16px; transition: transform .22s, color .22s; }
-        .contact-link-item:hover .contact-link-arrow { transform: rotate(-45deg) translate(2px,-2px); color: var(--gold); }
-        .cs-perspective { perspective: 1200px; }
-        @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-        .pulsing-dot { position: relative; background: #6fcf97 !important; animation: pulseDot 2s ease-in-out infinite; }
-        .pulsing-dot::before { content: ''; position: absolute; inset: -1px; border-radius: 50%; background: rgba(111,207,151,0.45); animation: pulseRing 2s ease-out infinite; }
-        @keyframes pulseRing { 0% { transform: scale(1); opacity: 1; } 60% { transform: scale(2.4); opacity: 0; } 100% { transform: scale(2.4); opacity: 0; } }
-        @media (max-width: 767px) {
-          .metrics-strip { grid-template-columns: repeat(2, 1fr) !important; }
-          .metrics-strip > div { border-right: none !important; border-bottom: 1px solid var(--sand-light); }
-          .metrics-strip > div:nth-child(odd) { border-right: 1px solid var(--sand-light) !important; }
-          .contact-grid { grid-template-columns: 1fr !important; padding: 36px 24px !important; }
-          .footer-row { flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+
+        @keyframes pulseGreen{
+          0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}
+          50%{box-shadow:0 0 0 7px rgba(34,197,94,.13)}
+          100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes ripple{
+          0%{transform:scale(1);opacity:.62}
+          100%{transform:scale(2.8);opacity:0}
+        }
+        @keyframes marquee{
+          from{transform:translateX(0)}
+          to{transform:translateX(-50%)}
+        }
+
+        main{
+          min-height:100vh;
+          font-family:Inter,sans-serif;
+          color:var(--ink);
+          background:
+            radial-gradient(circle at 18% 8%, rgba(141,120,189,.18), transparent 28%),
+            radial-gradient(circle at 86% 22%, rgba(244,209,95,.22), transparent 24%),
+            linear-gradient(180deg, #fbf6ee 0%, #f8f3ea 55%, #fffaf2 100%);
+          overflow:hidden;
+        }
+        main:before{
+          content:"";
+          position:fixed;inset:0;pointer-events:none;opacity:.26;z-index:0;
+          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+        }
+
+        .section{position:relative;z-index:1;padding:88px 56px;border-bottom:1px solid var(--line)}
+        .wrap{max-width:1160px;margin:0 auto}
+        .eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#9d9388;font-weight:700}
+
+        /* HERO */
+        .hero{position:relative;z-index:1;padding:140px 56px 70px}
+        .hero-center{max-width:760px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center}
+        .hero-status{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:#776f66;margin-bottom:22px}
+        .hero-status span{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulseGreen 1.8s infinite}
+        .hero-name{font-size:clamp(38px,6vw,64px);line-height:1.02;letter-spacing:-.05em;font-weight:800;color:var(--ink)}
+        .hero-role{font-size:15px;color:var(--muted);margin-top:12px}
+        .hero-skills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:26px;max-width:600px}
+        .hero-skills span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:8px 15px;color:#4f4740;background:rgba(255,250,242,.6)}
+
+        /* PILLS */
+        .pill-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:30px 0 20px}
+        .pill-btn,.pill-available{font-size:12px;padding:11px 18px;border-radius:100px;border:1px solid rgba(24,21,18,.12);background:rgba(255,250,242,.75);color:#4f4740;cursor:pointer;font-family:Inter,sans-serif;text-decoration:none;transition:.24s ease;backdrop-filter:blur(16px)}
+        .pill-btn:hover,.pill-available:hover{transform:translateY(-2px);border-color:rgba(141,120,189,.42);box-shadow:0 14px 32px rgba(51,35,20,.08)}
+        .pill-btn.active{background:var(--purple-deep);color:#fff;border-color:var(--purple-deep)}
+        .pill-cta{background:var(--ink)!important;color:#fff!important;border-color:var(--ink)!important;box-shadow:0 16px 34px rgba(24,21,18,.18)}
+        .pill-available{display:inline-flex;align-items:center;gap:9px;color:#15803d;background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.28)}
+        .pill-available.active{background:rgba(34,197,94,.14);border-color:#22c55e}
+        .dot-wrap{position:relative;width:8px;height:8px;display:inline-flex}
+        .dot-core,.green-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:block;animation:pulseGreen 1.8s infinite;flex:0 0 auto}
+        .dot-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid #22c55e;animation:ripple 1.8s ease-out infinite}
+        .pill-answer{max-width:590px;margin:0 auto;text-align:left;border:1px solid rgba(141,120,189,.2);border-left:4px solid var(--purple);background:rgba(255,250,242,.72);backdrop-filter:blur(18px);box-shadow:0 16px 36px rgba(51,35,20,.07);border-radius:18px;padding:18px 20px}
+        .pill-answer-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--purple);font-weight:800;margin-bottom:8px}
+        .pill-answer-text{font-size:13px;line-height:1.85;color:#61584f}
+        .available-row{display:flex;align-items:center;gap:10px;color:#413b35}
+        .tool-grid{display:flex;flex-wrap:wrap;gap:8px}
+        .tool-grid span{font-size:11px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);border-radius:999px;padding:8px 12px;color:#f3eee7}
+
+        /* MARQUEE */
+        .marquee-wrap{position:relative;z-index:1;border-top:1px solid rgba(24,21,18,.07);border-bottom:1px solid rgba(24,21,18,.07);background:rgba(24,21,18,.018);overflow:hidden;white-space:nowrap;opacity:.78}
+        .marquee{display:flex;width:max-content;animation:marquee 28s linear infinite}
+        .marquee span{font-family:"Instrument Serif",Georgia,serif;font-size:28px;color:rgba(48,41,31,.68);padding:12px 18px}
+        .marquee b{color:rgba(141,120,189,.62);font-weight:400}
+
+        /* CASE STUDIES */
+        .work-head{display:flex;justify-content:space-between;align-items:flex-end;gap:22px;margin-bottom:32px}
+        .work-head h2{font-size:clamp(34px,5vw,62px);line-height:.95;letter-spacing:-.06em;max-width:620px}
+        .work-head p{max-width:350px;color:var(--muted);font-size:14px;line-height:1.7}
+        .case-stack{display:grid;gap:22px}
+        .case-card{display:grid;grid-template-columns:minmax(0,.9fr) minmax(360px,1.1fr);min-height:520px;border:1px solid rgba(24,21,18,.1);background:rgba(255,250,242,.72);backdrop-filter:blur(18px);border-radius:34px;overflow:hidden;box-shadow:0 20px 60px rgba(51,35,20,.08)}
+        .case-copy{padding:38px;display:flex;flex-direction:column;justify-content:space-between;gap:28px}
+        .case-topline{display:flex;align-items:center;justify-content:space-between;gap:14px;color:#8d8378;font-size:11px;text-transform:uppercase;letter-spacing:.16em;font-weight:800}
+        .case-note{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#9d9388;margin-top:6px;font-style:italic}
+        .case-note:before{content:"↳";font-style:normal}
+        .case-copy h2{font-size:clamp(30px,4vw,52px);line-height:1;letter-spacing:-.06em;font-weight:800;max-width:580px}
+        .case-copy h2 span{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-style:italic;color:var(--purple);letter-spacing:-.04em}
+        .case-copy p{font-size:14px;line-height:1.85;color:#665d54;max-width:530px}
+        .case-bottom{display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+        .metric strong{font-size:46px;letter-spacing:-.07em;line-height:.9}
+        .metric span{display:block;font-size:12px;color:#756b61;margin-top:8px;font-weight:700}
+        .metric small{display:block;font-size:10px;color:#8f8579;margin-top:6px;line-height:1.45;max-width:260px}
+        .cs-btn{border:0;border-radius:999px;background:var(--ink);color:#fff;padding:12px 18px;font-size:12px;font-weight:700;cursor:pointer;transition:.24s ease;box-shadow:0 16px 34px rgba(24,21,18,.16);width:fit-content}
+        .cs-btn:hover{transform:translateY(-2px);background:var(--purple-deep)}
+        .case-media{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:48px;min-height:520px}
+        .case-media:before{content:"";position:absolute;width:440px;height:440px;border-radius:50%;background:rgba(255,255,255,.38);filter:blur(8px)}
+        .case-media img{position:relative;z-index:1;width:min(82%,440px);max-height:390px;object-fit:contain;border-radius:28px;box-shadow:0 30px 90px rgba(24,21,18,.22);transition:.45s cubic-bezier(.22,1,.36,1)}
+        .case-card:hover .case-media img{transform:scale(1.04) rotate(-1deg)}
+        .health-bg{background:radial-gradient(circle at 30% 20%, rgba(141,120,189,.36), transparent 30%), linear-gradient(135deg,#efe5d7,#fbf6ee)}
+        .fintech-bg{background:radial-gradient(circle at 70% 20%, rgba(141,120,189,.32), transparent 32%), linear-gradient(135deg,#15151b,#322944)}
+        .gd-bg{background:radial-gradient(circle at 40% 30%, rgba(27,46,75,.28), transparent 40%), linear-gradient(135deg,#1B2E4B,#2d4a6e)}
+        .image-fallback{position:relative;z-index:1;color:#c8bedb;font-size:13px;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:16px 20px}
+        .lock-badge{display:inline-flex;align-items:center;gap:5px;font-size:9px;background:rgba(141,120,189,.15);color:var(--purple);border:1px solid rgba(141,120,189,.25);border-radius:999px;padding:4px 10px;margin-top:8px}
+
+        /* CONCEPTS */
+        .concept-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:26px}
+        .concept-head h2{font-size:clamp(34px,5vw,60px);line-height:.94;letter-spacing:-.06em}
+        .concept-track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+        .concept-card{border-radius:32px;overflow:hidden;border:1px solid rgba(24,21,18,.1);background:rgba(255,250,242,.76);box-shadow:0 18px 50px rgba(51,35,20,.08);cursor:pointer;transition:.35s cubic-bezier(.22,1,.36,1)}
+        .concept-card:hover{transform:translateY(-8px);box-shadow:0 24px 70px rgba(51,35,20,.14)}
+        .concept-img{height:285px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+        .concept-img img{height:92%;max-width:92%;object-fit:contain;filter:drop-shadow(0 22px 35px rgba(0,0,0,.18));transition:.35s ease}
+        .concept-card:hover .concept-img img{transform:scale(1.05)}
+        .concept-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.56));display:flex;align-items:flex-end;padding:20px;opacity:0;transition:.3s}
+        .concept-card:hover .concept-overlay{opacity:1}
+        .concept-overlay span{color:#fff;font-family:"Instrument Serif",Georgia,serif;font-size:25px;line-height:1.05}
+        .concept-body{padding:22px}
+        .concept-type{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--purple);font-weight:800;margin-bottom:9px}
+        .concept-body h3{font-size:24px;letter-spacing:-.045em;line-height:1.08}
+        .concept-body p{font-size:13px;color:#756d64;line-height:1.7;margin-top:10px}
+        .concept-link{font-size:12px;color:var(--ink);font-weight:800;margin-top:16px}
+
+        /* ABOUT */
+        .about-section{background:linear-gradient(180deg,#fffaf2,#f4ecdf)}
+        .about-shell{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:72px;align-items:start}
+        .about-left{position:sticky;top:88px}
+        .about-photo-wrap{width:100%;max-width:320px;aspect-ratio:3/4;border-radius:28px;overflow:hidden;background:linear-gradient(145deg,#2b233f,#8d78bd);box-shadow:var(--shadow);margin-bottom:28px}
+        .about-photo-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top}
+        .about-left-name{font-size:22px;font-weight:800;letter-spacing:-.04em;margin-bottom:6px}
+        .about-left-role{font-size:14px;color:var(--muted);margin-bottom:18px}
+        .about-left-tags{display:flex;flex-wrap:wrap;gap:8px}
+        .about-left-tags span{font-size:10px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:#756d64}
+        .story-beats{display:flex;flex-direction:column;gap:0}
+        .story-beat{padding:28px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:100px 1fr;gap:24px;align-items:start}
+        .story-beat:last-child{border-bottom:none}
+        .story-beat-year{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--purple);font-weight:700;padding-top:4px}
+        .story-beat-title{font-size:18px;font-weight:700;letter-spacing:-.04em;margin-bottom:8px;line-height:1.2}
+        .story-beat-body{font-size:14px;color:#665d54;line-height:1.85}
+        .about-closing{margin-top:36px;padding:28px;background:rgba(141,120,189,.08);border:1px solid rgba(141,120,189,.18);border-left:4px solid var(--purple);border-radius:18px}
+        .about-closing p{font-size:15px;line-height:1.85;color:#413b35;font-family:"Instrument Serif",Georgia,serif;font-style:italic}
+        .about-closing cite{display:block;font-size:11px;font-style:normal;color:var(--muted);margin-top:12px;letter-spacing:.06em}
+
+        /* CONTACT */
+        .contact{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:30px}
+        .contact h2{font-size:clamp(42px,7vw,86px);line-height:.92;letter-spacing:-.07em}
+        .contact h2 span{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-style:italic;color:var(--purple)}
+        .contact-sub{font-size:15px;color:#746d64;margin-top:14px;line-height:1.7;max-width:480px}
+        .contact-links{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+        .contact-links a{font-size:13px;padding:12px 18px;border-radius:999px;text-decoration:none;border:1px solid rgba(24,21,18,.12);color:#4f4740;background:rgba(255,250,242,.72);transition:.24s ease}
+        .contact-links a:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(51,35,20,.09)}
+        .contact-links a:first-child{background:var(--ink);color:#fff;border-color:var(--ink)}
+        .footer{font-size:12px;color:#9b9085;margin-top:44px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+        @media(max-width:1020px){
+          .case-card{grid-template-columns:1fr}
+          .case-media{min-height:420px}
+          .concept-track{grid-template-columns:1fr}
+          .about-shell{grid-template-columns:1fr;gap:36px}
+          .about-left{position:static}
+        }
+
+        @media(max-width:720px){
+          .section,.hero{padding-left:22px;padding-right:22px}
+          .hero{padding-top:96px}
+          .hero-name{font-size:clamp(34px,11vw,52px)}
+          .hero-skills{gap:6px}
+          .hero-skills span{font-size:11px;padding:7px 12px}
+          .work-head,.concept-head{align-items:flex-start;flex-direction:column}
+          .case-copy{padding:26px}
+          .case-media{padding:30px;min-height:340px}
+          .case-media img{width:min(92%,360px);max-height:300px}
+          .story-beat{grid-template-columns:1fr;gap:6px}
+          .contact{align-items:flex-start}
+          .contact-links{justify-content:flex-start}
+          .marquee span{font-size:24px}
+        }
       `}</style>
 
-      {!isMobile && <><CustomCursor /><CursorTrail /></>}
-      <LoadBar />
+      <Navbar />
 
-      <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--cream)", color: "var(--ink)" }}>
-        <ProgressBar />
-        <NavbarWrapper />
-        <PageTransition>
-          <main>
+      <main>
 
-            {/* ════ 01 · HERO ════ */}
-            <section ref={heroRef} className="relative w-full overflow-hidden" style={{ background: "var(--cream)", minHeight: isMobile ? "auto" : "100vh" }}>
-              <div className="pointer-events-none absolute inset-0 z-10" style={{ opacity: 0.02, backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundSize: "256px" }} />
-
-              {/* MOBILE HERO */}
-              {isMobile && (
-                <div style={{ padding: "100px 24px 60px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 0 }}>
-                  <motion.img src={profile} alt="Bhavyasri Mudireddy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ width: "72vw", maxWidth: 280, objectFit: "contain", filter: "drop-shadow(0 20px 40px rgba(26,23,20,0.14))", marginBottom: 32 }} />
-                  <SectionTag>UX Designer · Portfolio</SectionTag>
-                  <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-                    style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(44px,12vw,72px)", lineHeight: 0.92, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 16 }}>
-                    Hi, <em style={{ fontStyle: "italic", color: "var(--stone)" }}>I'm</em>
-                  </motion.h1>
-                  <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
-                    style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,10vw,60px)", lineHeight: 1.0, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 8 }}>
-                    Bhavyasri<br /><em style={{ fontStyle: "italic", color: "var(--stone)" }}>Mudireddy</em>
-                  </motion.h2>
-                  <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.35 }}
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--stone)", marginTop: 16 }}>
-                    Product Designer &amp; Frontend Engineer
-                  </motion.p>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 300, color: "var(--sand)", marginTop: 6, minHeight: "1.5em" }}>
-                    <Typewriter text="AI UX · Fintech & Healthcare · React/TypeScript" delay={1.2} speed={32} />
-                  </motion.p>
-                  <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: 1.8, color: "var(--stone)", fontWeight: 300, maxWidth: 320, marginTop: 20 }}>
-                    3 years bridging UX research and React/TypeScript — I design the flow, then build it.
-                  </motion.p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 20, justifyContent: "center" }}>
-                    {["React", "TypeScript", "Framer Motion", "Figma", "WCAG AAA"].map((tag) => (
-                      <span key={tag} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", border: "1px solid var(--sand-light)", borderRadius: 100, padding: "4px 10px", background: "var(--bone)" }}>{tag}</span>
-                    ))}
-                  </div>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid var(--sand-light)", borderRadius: 100, padding: "10px 18px", background: "var(--bone)", marginTop: 20 }}>
-                    <motion.span className="pulsing-dot" animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }} transition={{ duration: 1.1, repeat: Infinity }} style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--sage)", display: "inline-block", flexShrink: 0 }} />
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "var(--stone)", letterSpacing: "0.06em" }}>Available for work · 2026</span>
-                  </div>
-                  <div style={{ display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap", justifyContent: "center" }}>
-                    <button type="button" className="btn-ink" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
-                      View Case Studies <FiArrowRight />
-                    </button>
-                    <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-outline"><FiDownload /> Resume</a>
-                  </div>
-                </div>
-              )}
-
-              {/* TABLET HERO */}
-              {isTablet && (
-                <div style={{ padding: "100px 48px 60px", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "end", width: "100%" }}>
-                    <div>
-                      <SectionTag>UX Designer · Portfolio</SectionTag>
-                      <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(48px,7vw,80px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 20 }}>
-                        Hi,<br /><em style={{ fontStyle: "italic", color: "var(--stone)" }}>I'm</em>
-                      </h1>
-                      <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                        style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,5vw,60px)", lineHeight: 1.0, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 8 }}>
-                        Bhavyasri<br /><em style={{ fontStyle: "italic", color: "var(--stone)" }}>Mudireddy</em>
-                      </motion.h2>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: 1.8, color: "var(--stone)", fontWeight: 300, marginTop: 20, maxWidth: 340 }}>
-                        3 years bridging UX research and React/TypeScript. Specializing in AI-powered products for <span style={{ color: "var(--ink)", fontWeight: 400 }}>fintech &amp; healthcare</span>.
-                      </p>
-                      <div style={{ display: "flex", gap: 12, marginTop: 28, flexWrap: "wrap" }}>
-                        <button type="button" className="btn-ink" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
-                          View Case Studies <FiArrowRight />
-                        </button>
-                        <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-outline"><FiDownload /> Resume</a>
-                      </div>
-                    </div>
-                    <motion.img src={profile} alt="Bhavyasri Mudireddy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-                      style={{ width: "100%", maxHeight: "60vh", objectFit: "contain", filter: "drop-shadow(0 20px 40px rgba(26,23,20,0.14))" }} />
-                  </div>
-                </div>
-              )}
-
-              {/* DESKTOP HERO */}
-              {!isMobile && !isTablet && (
-                <div className="relative z-10 grid min-h-screen items-center" style={{ gridTemplateColumns: "1fr 480px 1fr", paddingTop: 96 }}>
-                  <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col justify-center self-center px-10 xl:px-16">
-                    <SectionTag>UX Designer · Portfolio</SectionTag>
-                    <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(52px,7vw,92px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 28 }}>
-                      Hi,<br /><em style={{ fontStyle: "italic", color: "var(--stone)" }}>I'm</em>
-                    </h1>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300, maxWidth: 270, marginTop: 28 }}>
-                      3 years bridging UX research and React/TypeScript — I design the flow, then build it. Specializing in AI-powered products for <span style={{ color: "var(--ink)", fontWeight: 400 }}>fintech &amp; healthcare</span>.
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 20 }}>
-                      {["React", "TypeScript", "Framer Motion", "Figma", "WCAG AAA"].map((tag) => (
-                        <span key={tag} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", border: "1px solid var(--sand-light)", borderRadius: 100, padding: "4px 10px", background: "var(--bone)" }}>{tag}</span>
-                      ))}
-                    </div>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid var(--sand-light)", borderRadius: 100, padding: "10px 18px", background: "var(--bone)", width: "fit-content", marginTop: 20 }}>
-                      <motion.span className="pulsing-dot" animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }} transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }} style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--sage)", display: "inline-block", flexShrink: 0 }} />
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "var(--stone)", letterSpacing: "0.06em" }}>Available for work · 2026</span>
-                    </div>
-                  </motion.div>
-
-                  <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }} className="relative flex items-end justify-center" style={{ height: "100vh" }}>
-                    <motion.img src={profile} alt="Bhavyasri Mudireddy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                      style={{ position: "relative", zIndex: 1, height: "85vh", width: "auto", objectFit: "contain", filter: "drop-shadow(0 28px 56px rgba(26,23,20,0.16))" }}
-                      whileHover={{ scale: 1.015 }} />
-                  </motion.div>
-
-                  <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col justify-center self-center px-10 xl:px-16">
-                    <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
-                      style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(40px,5vw,76px)", lineHeight: 1.0, letterSpacing: "-0.04em", color: "var(--ink)" }}>
-                      Bhavyasri<br /><em style={{ fontStyle: "italic", color: "var(--stone)" }}>Mudireddy</em>
-                    </motion.h2>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--stone)", marginTop: 20 }}>
-                      Product Designer &amp; Frontend Engineer
-                    </p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: "var(--sand)", marginTop: 6, letterSpacing: "0.04em", minHeight: "1.5em" }}>
-                      <Typewriter text="AI UX · Fintech & Healthcare · React/TypeScript" delay={1.5} speed={32} />
-                    </p>
-                    <div style={{ height: 1, background: "var(--sand-light)", margin: "28px 0", maxWidth: 320 }} />
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 260 }}>
-                      <MagneticWrap>
-                        <button type="button" className="btn-ink" data-cursor="Work" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
-                          View Case Studies <FiArrowRight />
-                        </button>
-                      </MagneticWrap>
-                      <MagneticWrap>
-                        <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-outline" data-cursor="Open">
-                          <FiDownload /> Resume
-                        </a>
-                      </MagneticWrap>
-                    </div>
-                    <motion.div animate={{ opacity: scrolledPast120 ? 0 : 1 }} transition={{ duration: 0.4 }} style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 56, pointerEvents: "none" }}>
-                      <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} style={{ width: 1, height: 48, background: "var(--sand)", marginLeft: 2 }} />
-                      <SectionTag>Scroll to see work</SectionTag>
-                    </motion.div>
-                  </motion.div>
-                </div>
-              )}
-            </section>
-
-            <MarqueeStrip />
-
-            {/* ════ 02 · CASE STUDIES ════ */}
-            <section id="case-studies" className="scroll-mt-24 w-full" style={{ background: "var(--cream)", padding: isMobile ? "64px 24px" : isTablet ? "80px 40px" : "112px 80px" }}>
-              <motion.div {...reveal} style={{ marginBottom: 48 }}>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 32, alignItems: "end" }}>
-                  <div>
-                    <SectionTag>02 // Work</SectionTag>
-                    <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,6vw,80px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 16 }}>
-                      Selected<br /><em style={{ color: "var(--stone)", fontStyle: "italic" }}>Case Studies</em>
-                    </h2>
-                  </div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.9, color: "var(--stone)", maxWidth: 480, fontWeight: 300 }}>
-                    A curated set of UX work focused on guidance, clarity, and elegant interface thinking.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div className="metrics-strip" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, borderRadius: 16, overflow: "hidden", border: "1px solid var(--sand-light)", marginBottom: 32 }}>
-                {[
-                  { stat: "92%", label: "Task success rate", sub: "Fintech usability testing" },
-                  { stat: "60%", label: "Less decision anxiety", sub: "Healthcare AI flow" },
-                  { stat: "70+", label: "User interviews", sub: "Recruited via online communities & personal network" },
-                  { stat: "100%", label: "Design-to-code parity", sub: "UNT campus tools" },
-                ].map((item, i) => (
-                  <div key={i} style={{ background: "var(--bone)", padding: "24px 20px", borderRight: i < 3 ? "1px solid var(--sand-light)" : "none" }}>
-                    <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(28px,4vw,40px)", lineHeight: 1, letterSpacing: "-0.03em", color: "var(--ink)" }}><StatCountUp stat={item.stat} /></p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "var(--ink-soft)", marginTop: 8, lineHeight: 1.4 }}>{item.label}</p>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: "var(--stone)", fontWeight: 300, marginTop: 4 }}>{item.sub}</p>
-                  </div>
-                ))}
-              </motion.div>
-
-              <motion.div className="cs-perspective"
-                style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 24 }}
-                initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
-                variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.13 } } }}>
-                {caseStudies.map((study) => (
-                  <TiltCard key={study.id}
-                    variants={{ hidden: { opacity: 0, y: 36 }, visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } } }}
-                    className="cs-card-wrap group flex flex-col overflow-hidden" data-cursor="View"
-                    style={{ borderRadius: 20, border: "1px solid var(--sand-light)", background: "var(--bone)" }}
-                    onClick={() => study.route && navigate(study.route)}>
-                    <div style={{ position: "relative", height: isMobile ? 220 : 280, overflow: "hidden" }}>
-                      <motion.img src={study.image} alt={study.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} whileHover={{ scale: 1.06 }} transition={{ duration: 0.7 }} />
-                      <div style={{ position: "absolute", top: 14, left: 14, background: "var(--ink)", color: "var(--cream)", borderRadius: 8, padding: "4px 10px" }}>
-                        <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 13 }}>{study.id}</span>
-                      </div>
-                    </div>
-                    <div className="cs-card-border" />
-                    <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: "24px" }}>
-                      <SectionTag>{study.category} · {study.year}</SectionTag>
-                      <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: isMobile ? 18 : 22, lineHeight: 1.2, color: "var(--ink)", letterSpacing: "-0.02em", margin: "12px 0 10px" }}>{study.title}</h3>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.85, color: "var(--stone)", fontWeight: 300, flex: 1 }}>{study.summary}</p>
-                      {study.route && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, color: "var(--gold)", fontSize: 11, fontWeight: 500, letterSpacing: "0.10em", textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>
-                          View Case Study <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.6, repeat: Infinity }}><FiArrowRight /></motion.span>
-                        </div>
-                      )}
-                    </div>
-                  </TiltCard>
-                ))}
-              </motion.div>
-            </section>
-
-            {/* ════ 03 · MOTION ════ */}
-            <MotionSection interactionStudies={interactionStudies} activeStudyIndex={activeStudyIndex} setActiveStudyIndex={setActiveStudyIndex} prevStudy={prevStudy} nextStudy={nextStudy} />
-
-            {/* ════ 04 · PRODUCT CONCEPTS — Apple Look Up ════ */}
-            <section id="concepts" className="scroll-mt-24 w-full" style={{ background: "var(--bone)", padding: isMobile ? "64px 24px" : isTablet ? "80px 40px" : "112px 80px" }}>
-              <motion.div {...reveal} style={{ marginBottom: 48 }}>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 32, alignItems: "end" }}>
-                  <div>
-                    <SectionTag>04 // Product Thinking</SectionTag>
-                    <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,6vw,80px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 16 }}>
-                      Noticing what's<br /><em style={{ color: "var(--stone)", fontStyle: "italic" }}>missing</em>
-                    </h2>
-                  </div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.9, color: "var(--stone)", maxWidth: 480, fontWeight: 300 }}>
-                    The best product ideas start with a personal moment of friction. These are self-initiated concepts born from real gaps I noticed in products I use every day.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Apple Case Study Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 36 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.1 }}
-                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-                style={{ borderRadius: 24, border: "1px solid var(--sand-light)", background: "var(--cream)", overflow: "hidden" }}>
-
-                {/* Top label bar */}
-                <div style={{ padding: "16px 32px", borderBottom: "1px solid var(--sand-light)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bone)" }}>
-                  <SectionTag>Product Concept · iOS · 2026</SectionTag>
-                  <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 13, fontStyle: "italic", color: "var(--gold)" }}>Self-initiated</span>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 0 }}>
-
-                  {/* LEFT — Story */}
-                  <div style={{ padding: isMobile ? "32px 24px" : "48px 48px", borderRight: isMobile ? "none" : "1px solid var(--sand-light)", borderBottom: isMobile ? "1px solid var(--sand-light)" : "none" }}>
-
-                    <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(24px,3vw,40px)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--ink)", marginBottom: 24 }}>
-                      You know the word.<br />
-                      <em style={{ color: "var(--stone)", fontStyle: "italic" }}>But can you say it?</em>
-                    </h3>
-
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300, marginBottom: 16 }}>
-                      I was reading an article when I came across the word <em>"archetype."</em> I long pressed it, tapped Look Up, and got the definition instantly - but had no idea how to say it out loud.
-                    </p>
-
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300, marginBottom: 32 }}>
-                      iOS could tell me what a word meant. It could translate it. But it couldn't tell me how to <em>pronounce</em> it  the one thing I needed most in that moment.
-                    </p>
-
-                    {/* Pull quote */}
-                    <div style={{ borderLeft: "2px solid var(--gold)", paddingLeft: 20, marginBottom: 32 }}>
-                      <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, lineHeight: 1.7, color: "var(--ink-soft)", fontStyle: "italic" }}>
-                        "iOS Look Up gives you meaning. But meaning without pronunciation leaves the word stranded on the page."
-                      </p>
-                    </div>
-
-                    {/* Translate vs Pronunciation comparison */}
-                    <div style={{ marginBottom: 32 }}>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 14 }}>Why Translate doesn't solve this</p>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        {[
-                          { label: "Translate", desc: "Converts to another language", icon: "🌐" },
-                          { label: "Pronunciation", desc: "Tells you how to say it in English", icon: "🔊" },
-                        ].map((item) => (
-                          <div key={item.label} style={{ borderRadius: 12, border: "1px solid var(--sand-light)", padding: "16px", background: "var(--bone)" }}>
-                            <p style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</p>
-                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: "var(--ink)", marginBottom: 6 }}>{item.label}</p>
-                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "var(--stone)", fontWeight: 300, lineHeight: 1.6 }}>{item.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Design principle */}
-                    <div style={{ borderRadius: 16, background: "var(--ink)", padding: "20px 24px", marginBottom: 24 }}>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--gold)", marginBottom: 10 }}>Design Principle</p>
-                      <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "var(--cream)", lineHeight: 1.5, fontStyle: "italic" }}>
-                        "The best feature feels like it was always there."
-                      </p>
-                    </div>
-
-                    {/* Tags */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {["Figma", "iOS Design", "Product Concept", "2026"].map((tag) => (
-                        <span key={tag} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)", border: "1px solid var(--sand-light)", borderRadius: 100, padding: "4px 10px", background: "var(--bone)" }}>{tag}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* RIGHT — Mockups */}
-                  <div style={{ padding: isMobile ? "32px 24px" : "48px 48px", display: "flex", flexDirection: "column", gap: 24 }}>
-
-                    <div>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 6 }}>The Solution</p>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.8, color: "var(--stone)", fontWeight: 300 }}>
-                        A single pronunciation row added to the existing Look Up popup - phonetic spelling on the left, speaker icon on the right. Zero extra taps. Zero new screens.
-                      </p>
-                    </div>
-
-                    {/* 2x2 Mockup grid — clickable */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                      {appleMockups.map((mockup, index) => (
-                        <motion.div key={mockup.label}
-                          whileHover={{ y: -4, scale: 1.02 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 24 }}
-                          onClick={() => openLightbox(mockup, index)}
-                          data-cursor="View"
-                          style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--sand-light)", background: "var(--bone)", cursor: "pointer", position: "relative" }}>
-                          <img src={mockup.src} alt={mockup.label} style={{ width: "100%", height: "auto", display: "block" }} loading="lazy" />
-                          {/* Hover overlay */}
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                            style={{ position: "absolute", inset: 0, background: "rgba(26,23,20,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", color: "#ffffff", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 100, padding: "6px 16px" }}>View ↗</span>
-                          </motion.div>
-                          <div style={{ padding: "10px 14px", borderTop: "1px solid var(--sand-light)" }}>
-                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--stone)" }}>{mockup.label}</p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "var(--stone)", fontWeight: 300, letterSpacing: "0.04em" }}>
-                      ↑ Click any screen to explore
-                    </p>
-
-                    {/* What's next */}
-                    <div style={{ borderRadius: 16, border: "1px solid var(--sand-light)", padding: "20px 24px", background: "var(--bone)" }}>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 12 }}>What I'd explore next</p>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {[
-                          "Multiple accent options - American, British, Australian",
-                          "Slow pronunciation mode for language learners",
-                          "Syllable breakdown - arch·e·type highlighted as it plays",
-                        ].map((item) => (
-                          <div key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                            <span style={{ color: "var(--gold)", fontSize: 12, flexShrink: 0, marginTop: 2 }}>→</span>
-                            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "var(--stone)", fontWeight: 300, lineHeight: 1.6 }}>{item}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </section>
-
-            {/* ════ 05 · ABOUT ════ */}
-            <section id="about" className="scroll-mt-24 w-full" style={{ background: "var(--cream-dark)", padding: isMobile ? "64px 24px" : isTablet ? "80px 40px" : "112px 80px" }}>
-              <motion.div {...reveal}>
-                <div style={{ marginBottom: 48, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 32, alignItems: "end" }}>
-                  <div>
-                    <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(36px,5.5vw,72px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--ink)", marginTop: 16 }}>
-                      Calm design,<br /><em style={{ color: "var(--stone)", fontStyle: "italic" }}>Clear structure</em>
-                    </h2>
-                  </div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.9, color: "var(--stone)", maxWidth: 480, fontWeight: 400 }}>
-                    I'm Bhavyasri, a product designer and frontend engineer focused on guided digital experiences for fintech and healthcare.
-                  </p>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "repeat(2,1fr)" : "repeat(3,1fr)", gap: 20 }}>
-                  {[
-                    { num: "01", title: "UX Focus", desc: "AI-assisted flows, guided onboarding, interaction clarity, and decision-making support. I center the user at every step — recruiting participants through targeted online communities and personal network for both healthcare and fintech research." },
-                    { num: "02", title: "Design Strength", desc: "Visual calm, thoughtful hierarchy, and interfaces that feel intentional. Not overdone, not underdone — with 100% design-to-code parity across shipped projects." },
-                    { num: "03", title: "Working Style", desc: "Structure first, polish second. I bring WCAG AAA accessibility standards and React implementation awareness, so designs ship as designed." },
-                  ].map((item, index) => (
-                    <motion.div key={item.num} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.55, delay: index * 0.1 }}
-                      style={{ borderRadius: 20, border: "1px solid var(--sand-light)", background: "var(--bone)", padding: "32px 28px" }}>
-                      <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: "var(--gold-pale)", lineHeight: 1, letterSpacing: "-0.04em" }}>{item.num}</p>
-                      <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "var(--ink)", marginTop: 14, marginBottom: 10, letterSpacing: "-0.02em" }}>{item.title}</h3>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.85, color: "var(--stone)", fontWeight: 400 }}>{item.desc}</p>
-                    </motion.div>
-                  ))}
-                </div>
-                <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.55, delay: 0.3 }}
-                  style={{ marginTop: 20, borderRadius: 20, border: "1px solid var(--sand-light)", background: "var(--bone)", padding: "24px 28px", display: "flex", alignItems: isMobile ? "flex-start" : "center", flexWrap: "wrap", gap: 20 }}>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", flexShrink: 0 }}>Credentials</p>
-                  {[
-                    { label: "MS Computer Science", sub: "University of North Texas · May 2025" },
-                    { label: "Google UX Design Certificate", sub: "Professional · March 2026" },
-                    { label: "WCAG AAA Implementation", sub: "Validated across shipped products" },
-                  ].map((cred) => (
-                    <div key={cred.label} style={{ display: "flex", flexDirection: "column", gap: 3, borderLeft: "1px solid var(--sand-light)", paddingLeft: 16 }}>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{cred.label}</span>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "var(--stone)", fontWeight: 300 }}>{cred.sub}</span>
-                    </div>
-                  ))}
-                </motion.div>
-                <div style={{ marginTop: 20, borderRadius: 20, border: "1px solid var(--sand-light)", background: "var(--bone)", padding: "24px 28px", display: "flex", alignItems: isMobile ? "flex-start" : "center", gap: 24 }}>
-                  <p style={{ fontFamily: "'DM Serif Display', serif", fontSize: 44, color: "var(--gold-pale)", lineHeight: 1, flexShrink: 0 }}>+</p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.85, color: "var(--stone)", fontWeight: 400 }}>
-                    I bring <span style={{ color: "var(--ink)", fontWeight: 500 }}>full-stack UX ownership</span> — from 0→1 research through React/TypeScript implementation. At UNT, I conducted 50+ user research sessions and delivered a 20–50 component design system with 100% design-to-code parity across 8 campus tools.
-                  </p>
-                </div>
-              </motion.div>
-            </section>
-
-            {/* ════ 06 · CONTACT ════ */}
-            <section id="resume" className="scroll-mt-24 w-full" style={{ background: "var(--cream)", padding: isMobile ? "64px 24px 100px" : isTablet ? "80px 40px" : "112px 80px" }}>
-              <motion.div {...reveal} className="contact-grid"
-                style={{ borderRadius: 24, background: "var(--ink)", padding: isMobile ? "36px 24px" : "64px 56px", display: "grid", gap: 40, gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(32px,5vw,64px)", lineHeight: 0.9, letterSpacing: "-0.03em", color: "var(--cream)" }}>
-                    Let's work<br /><em style={{ color: "var(--sand)", fontStyle: "italic" }}>together</em>
-                  </h2>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 400, maxWidth: 360 }}>
-                    Available for full-time product design roles in <span style={{ color: "var(--sand-light)" }}>fintech, healthcare,</span> or AI-first products. Based in Denton, TX — open to remote.
-                  </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    <a href={RESUME_URL} target="_blank" rel="noreferrer" className="btn-gold" data-cursor="Open"><FiDownload /> View Resume</a>
-                    <a href="mailto:bhavyasrireddy267@gmail.com" className="btn-ghost-dark" data-cursor="Mail"><FiMail /> Email Me</a>
-                  </div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    { label: "Email", value: "bhavyasrireddy267@gmail.com", icon: <FiMail size={15} />, href: "mailto:bhavyasrireddy267@gmail.com", iconBg: "#2d2a26", iconColor: "var(--sand)" },
-                    { label: "LinkedIn", value: "Connect with me", icon: <FaLinkedinIn size={14} />, href: "https://www.linkedin.com/in/bhavyasri-m-593aa6214/", iconBg: "#1d3557", iconColor: "#a8c4e0" },
-                    { label: "GitHub", value: "Implementation work", icon: <FaGithub size={15} />, href: "https://github.com/bhavyasriii", iconBg: "#2d2a26", iconColor: "var(--sand)" },
-                    { label: "Schedule a call", value: "30-min intro · Calendly", icon: <FiCalendar size={15} />, href: "https://calendly.com/bhavyasrireddy267", iconBg: "#1a2e1a", iconColor: "var(--sage)" },
-                  ].map((item) => (
-                    <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className="contact-link-item" data-cursor="Open">
-                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: item.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: item.iconColor, flexShrink: 0 }}>{item.icon}</div>
-                      <div>
-                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--stone)", marginBottom: 4 }}>{item.label}</p>
-                        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: isMobile ? 13 : 15, color: "var(--cream)", fontWeight: 400, wordBreak: "break-all" }}>{item.value}</p>
-                      </div>
-                      <span className="contact-link-arrow">↗</span>
-                    </a>
-                  ))}
-                </div>
-              </motion.div>
-              <footer className="footer-row" style={{ paddingTop: 32, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "var(--stone)", fontWeight: 300 }}>© 2026 Bhavyasri Mudireddy — Product Designer &amp; Frontend Engineer</p>
-                <p style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: 22, color: "var(--sand)" }}>BM</p>
-              </footer>
-            </section>
-
-            <MobileCTAStrip />
-
-            {/* ════ LIGHTBOX MODAL ════ */}
-            <AnimatePresence>
-              {lightbox && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  onClick={closeLightbox}
-                  style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(26,23,20,0.92)", backdropFilter: "blur(20px)", display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "20px" : "40px" }}>
-
-            {/* Modal content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 24 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 20 : 40, alignItems: "center", maxWidth: 900, width: "100%", maxHeight: "90vh" }}>
-
-              {/* Image */}
-              <div style={{ flex: "0 0 auto", maxHeight: isMobile ? "55vh" : "80vh", display: "flex", alignItems: "center" }}>
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={lightbox.label}
-                    src={lightbox.src}
-                    alt={lightbox.label}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ height: isMobile ? "55vh" : "80vh", width: "auto", objectFit: "contain", borderRadius: 20, boxShadow: "0 40px 100px rgba(0,0,0,0.6)" }}
-                  />
-                </AnimatePresence>
-              </div>
-
-              {/* Info panel */}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20, textAlign: isMobile ? "center" : "left" }}>
-
-                {/* Counter */}
-                <p style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: 13, color: "var(--gold)", letterSpacing: "0.06em" }}>
-                  {lightbox.index + 1} / {appleMockups.length}
-                </p>
-
-                {/* Label */}
-                <AnimatePresence mode="wait">
-                  <motion.div key={lightbox.label + "-info"}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}>
-                    <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(22px,3vw,36px)", lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--cream)", marginBottom: 16 }}>
-                      {lightbox.label}
-                    </h3>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.9, color: "var(--stone)", fontWeight: 300 }}>
-                      {lightbox.desc}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Navigation */}
-                <div style={{ display: "flex", gap: 12, justifyContent: isMobile ? "center" : "flex-start", marginTop: 8 }}>
-                  <button type="button" onClick={prevLightbox}
-                    style={{ width: 44, height: 44, borderRadius: "50%", border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--gold)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--gold)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#3d3830"; (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)"; }}>
-                    ←
-                  </button>
-                  <button type="button" onClick={nextLightbox}
-                    style={{ width: 44, height: 44, borderRadius: "50%", border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--gold)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--gold)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#3d3830"; (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)"; }}>
-                    →
-                  </button>
-                  <button type="button" onClick={closeLightbox}
-                    style={{ height: 44, paddingInline: 20, borderRadius: 100, border: "1px solid #3d3830", background: "transparent", color: "var(--stone)", fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "0.14em", textTransform: "uppercase", cursor: "pointer", transition: "border-color 0.2s, color 0.2s" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--cream)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--cream)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#3d3830"; (e.currentTarget as HTMLButtonElement).style.color = "var(--stone)"; }}>
-                    Close · Esc
-                  </button>
-                </div>
-
-                {/* Dot indicators */}
-                <div style={{ display: "flex", gap: 8, justifyContent: isMobile ? "center" : "flex-start" }}>
-                  {appleMockups.map((_, i) => (
-                    <button key={i} type="button" onClick={() => setLightbox({ ...appleMockups[i], index: i })}
-                      style={{ width: i === lightbox.index ? 24 : 8, height: 8, borderRadius: 100, background: i === lightbox.index ? "var(--gold)" : "#3d3830", border: "none", cursor: "pointer", transition: "width 0.3s, background 0.3s", padding: 0 }} />
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+        <section className="hero">
+          <motion.div className="hero-center" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+            <div className="hero-status"><span /> Available for work</div>
+            <h1 className="hero-name">Bhavyasri Mudireddy</h1>
+            <p className="hero-role">Product Designer · Denton, TX</p>
+            <div className="hero-skills">
+              {["User research", "Prototyping", "Interaction design", "Usability testing", "Information architecture", "Design systems"].map((s) => (
+                <span key={s}>{s}</span>
+              ))}
+            </div>
+            <div className="pill-row">
+              <button className="pill-btn pill-cta" onClick={() => document.getElementById("case-studies")?.scrollIntoView({ behavior: "smooth" })}>
+                See my work ↓
+              </button>
+              <button className={`pill-btn ${activePill === "research" ? "active" : ""}`} onClick={() => togglePill("research")}>
+                how do you research?
+              </button>
+              <button className={`pill-btn ${activePill === "shipped" ? "active" : ""}`} onClick={() => togglePill("shipped")}>
+                what have you built?
+              </button>
+              <button className={`pill-btn ${activePill === "code" ? "active" : ""}`} onClick={() => togglePill("code")}>
+                can you code?
+              </button>
+              <a href={RESUME_URL} target="_blank" rel="noreferrer" className="pill-btn">
+                Resume ↗
+              </a>
+            </div>
+            <PillAnswer active={activePill} />
           </motion.div>
-        )}
-      </AnimatePresence>
-          </main>
-        </PageTransition>
-      </div>
+        </section>
+
+        <section id="case-studies" className="section">
+          <div className="wrap">
+            <div className="work-head">
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 14 }}>Selected Work</div>
+                <h2>Three projects.<br />Two research-led. One shipped.</h2>
+              </div>
+              <p>Two self-initiated studies validated through moderated usability testing. One company project delivered to stakeholder.</p>
+            </div>
+            <div className="case-stack">
+              {caseStudies.map((cs, index) => (
+                <motion.article
+                  key={cs.route}
+                  className="case-card"
+                  initial={{ opacity: 0, y: 26 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.18 }}
+                  transition={{ duration: 0.55, delay: index * 0.08 }}
+                >
+                  <div className="case-copy">
+                    <div>
+                      <div className="case-topline">
+                        <span>{cs.tag}</span>
+                      </div>
+                      <h2>{cs.title}</h2>
+                      <div className="case-note">{cs.note}</div>
+                      {cs.route.includes("gdinfotek") && (
+                        <div className="lock-badge">🔒 Password protected · ask me for access</div>
+                      )}
+                      <p style={{ marginTop: 16 }}>{cs.desc}</p>
+                    </div>
+                    <div className="case-bottom">
+                      <div className="metric">
+                        <strong>{cs.metric}</strong>
+                        <span>{cs.metricText}</span>
+                        <small>{cs.small}</small>
+                      </div>
+                      <button className="cs-btn" onClick={() => navigate(cs.route)}>
+                        {cs.route.includes("gdinfotek") ? "View case study 🔒" : "Read case study →"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className={`case-media ${cs.bgClass}`}>
+                    {cs.route.includes("fintech") && fintechImageError ? (
+                      <div className="image-fallback">Fintech image coming soon</div>
+                    ) : (
+                      <img
+                        src={cs.image}
+                        alt={cs.tag}
+                        onError={() => cs.route.includes("fintech") && setFintechImageError(true)}
+                      />
+                    )}
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="concepts-interactions" className="section">
+          <div className="wrap">
+            <div className="concept-head">
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 14 }}>Concepts & Interactions</div>
+                <h2>Smaller explorations.<br />Specific product logic.</h2>
+              </div>
+              <p style={{ fontSize: 12, color: "#9b9085" }}>Click a card to explore</p>
+            </div>
+            <div className="concept-track">
+              {conceptItems.map((item) => (
+                <article
+                  key={item.id}
+                  className="concept-card"
+                  onClick={() => navigate(item.route)}
+                >
+                  <div className="concept-img" style={{ background: item.bg }}>
+                    {item.image
+                      ? <img src={item.image} alt={item.name} />
+                      : <span style={{ fontSize: 58, opacity: 0.35 }}>{item.emoji}</span>
+                    }
+                    <div className="concept-overlay">
+                      <span>{item.hook}</span>
+                    </div>
+                  </div>
+                  <div className="concept-body">
+                    <div className="concept-type">{item.type}</div>
+                    <h3>{item.name}</h3>
+                    <p>{item.desc}</p>
+                    <div className="concept-link">
+                      View {item.type.includes("Thinking") ? "concept" : "study"} →
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="about" className="section about-section">
+          <div className="wrap">
+            <div className="eyebrow" style={{ marginBottom: 36 }}>About</div>
+            <div className="about-shell">
+              <div className="about-left">
+                <div className="about-photo-wrap">
+                  <img src={profilePhoto} alt="Bhavyasri Mudireddy" />
+                </div>
+                <div className="about-left-name">Bhavyasri Mudireddy</div>
+                <div className="about-left-role">Product Designer · Denton, TX</div>
+                <div className="about-left-tags">
+                  {["UX Research", "Interaction Design", "React", "Figma"].map((t) => (
+                    <span key={t}>{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="about-right">
+                <div className="story-beats">
+                  {storyBeats.map((beat, i) => (
+                    <motion.div
+                      key={i}
+                      className="story-beat"
+                      initial={{ opacity: 0, y: 18 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: i * 0.06 }}
+                    >
+                      <div className="story-beat-year">{beat.year}</div>
+                      <div className="story-beat-content">
+                        <div className="story-beat-title">{beat.title}</div>
+                        <div className="story-beat-body">{beat.body}</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="about-closing">
+                  <p>"I design, I research, and I build - because I've never been satisfied stopping at any one of them."</p>
+                  <cite> Bhavyasri Mudireddy</cite>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" style={{ borderBottom: 0, paddingBottom: 90 }}>
+          <div className="wrap">
+            <div className="contact">
+              <div>
+                <h2>
+                  Available for<br />
+                  full-time <span>design roles.</span>
+                </h2>
+                <p className="contact-sub">
+                  Based in Denton TX. Open to relocate anywhere in the US.
+                </p>
+              </div>
+              <div className="contact-links">
+                <a href="mailto:bhavyasrireddy267@gmail.com">Email me</a>
+                <a href="https://www.linkedin.com/in/bhavyasri-m-593aa6214/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+                <a href="https://calendly.com/bhavyasrireddy267" target="_blank" rel="noreferrer">Book a call ↗</a>
+                <a href={RESUME_URL} target="_blank" rel="noreferrer">Resume ↗</a>
+              </div>
+            </div>
+            <div className="footer">
+              <span>©  Bhavyasri Mudireddy. Product Designer</span>
+              <span>Designed and built in React + TypeScript</span>
+            </div>
+          </div>
+        </section>
+
+      </main>
     </>
   );
 }

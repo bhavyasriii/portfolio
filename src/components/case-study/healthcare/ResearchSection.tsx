@@ -38,7 +38,14 @@ const ResearchSection: React.FC = () => {
             Four recurring friction patterns shaped the redesign.
           </h2>
 
-          <p className="mt-6 text-lg md:text-xl leading-8 text-gray-600">
+          {/* FIX 1 — participant count + methodology */}
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2">
+            <span className="text-sm font-semibold text-blue-700">12 participants</span>
+            <span className="text-gray-300">·</span>
+            <span className="text-sm text-blue-600">Moderated interviews · Recruited via online communities and personal network</span>
+          </div>
+
+          <p className="mt-5 text-lg md:text-xl leading-8 text-gray-600">
             Through user interviews and analysis, I identified the most
             recurring moments of confusion, hesitation, and friction across the
             booking journey. These insights directly informed the structure of
@@ -83,6 +90,15 @@ const ResearchSection: React.FC = () => {
             confidence to book independently, and a busy caregiver who values
             speed, straightforward language, and minimal friction.
           </p>
+
+          {/* FIX 2 — persona synthesis disclaimer */}
+          <div className="mt-4 flex items-start gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
+            <span className="mt-0.5 text-gray-400">ℹ</span>
+            <p className="text-sm leading-6 text-gray-500">
+              These are composite personas synthesized from 12 participant interviews — not real individuals.
+              Photos are representational only.
+            </p>
+          </div>
         </div>
 
         {/* Primary Persona */}
@@ -92,15 +108,20 @@ const ResearchSection: React.FC = () => {
               <div className="overflow-hidden rounded-[1.75rem] border border-gray-200 bg-gray-100">
                 <img
                   src={rajeshImage}
-                  alt="Rajesh Menon persona"
+                  alt="Representational image for Rajesh composite persona"
                   className="h-[320px] w-full object-cover"
                 />
               </div>
 
               <div className="mt-5 rounded-[1.5rem] border border-gray-200 bg-gray-50 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-600">
-                  Primary Persona
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-600">
+                    Primary Persona
+                  </p>
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-500 border border-blue-100">
+                    Composite · Synthesized from interviews
+                  </span>
+                </div>
 
                 <h4 className="mt-3 text-2xl font-bold text-gray-900">
                   Rajesh Menon
@@ -114,8 +135,8 @@ const ResearchSection: React.FC = () => {
 
             <div>
               <blockquote className="text-2xl md:text-3xl italic leading-10 text-gray-800">
-                “I don’t mind using technology, I just don’t want it to be
-                confusing.”
+                "I don't mind using technology, I just don't want it to be
+                confusing."
               </blockquote>
 
               <p className="mt-6 text-base md:text-lg leading-8 text-gray-500">
@@ -182,15 +203,20 @@ const ResearchSection: React.FC = () => {
               <div className="overflow-hidden rounded-[1.5rem] border border-gray-200 bg-gray-100">
                 <img
                   src={katherineImage}
-                  alt="Katherine persona"
+                  alt="Representational image for Katherine composite persona"
                   className="h-[260px] w-full object-cover"
                 />
               </div>
 
               <div className="mt-4 rounded-[1.25rem] border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-600">
-                  Secondary Persona
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-blue-600">
+                    Secondary Persona
+                  </p>
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-500 border border-blue-100">
+                    Composite · Synthesized from interviews
+                  </span>
+                </div>
 
                 <h4 className="mt-2 text-xl font-bold text-gray-900">
                   Katherine
@@ -204,7 +230,7 @@ const ResearchSection: React.FC = () => {
 
             <div>
               <blockquote className="text-xl md:text-2xl italic leading-9 text-gray-800">
-                “When it comes to health, I need guidance, not guesswork.”
+                "When it comes to health, I need guidance, not guesswork."
               </blockquote>
 
               <p className="mt-5 text-base leading-8 text-gray-500">
