@@ -119,7 +119,7 @@ export default function Navbar() {
         ))}
 
         <a
-          href="/Bhavyasri_Product_Designer.pdf"
+          href="/resume.pdf"
           target="_blank" rel="noreferrer"
           style={{
             marginLeft: 4,
