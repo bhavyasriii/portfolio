@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import jobhouseBefore from "../assets/jobflow/jobhouse-before.png";
 
 /* ============================================================
    JobFlow, Self-initiated UX research & interaction study
@@ -302,7 +303,7 @@ export default function CaseStudyJobFlow() {
         <div style={{ marginTop: 40 }}>
           {/* Replace src with your Figma/screenshot export */}
           <img
-            src="/assets/jobflow/jobhouse-before.png"
+            src={jobhouseBefore}
             alt="JobHouse v1 - the tracker I built before this study"
             style={{ width: "100%", maxWidth: 560, borderRadius: 12, border: "1px solid #e2e8f0", display: "block" }}
           />
