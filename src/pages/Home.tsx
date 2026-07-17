@@ -8,6 +8,8 @@ import profilePhoto from "../assets/profile-cutout.png";
 import gdCover from "../assets/images/gdinfotek/Highfi-Homepage.png";
 import mockup1 from "../assets/images/apple-cs/mockup-1.png";
 import jobflowCover from "../assets/images/jobflowCover.png";
+import magicPatternsCover from "../assets/magic-patterns-cover.png";
+import medReconCover from "../assets/images/med-recon-cover.png";
 
 const RESUME_URL = "/resume.pdf";
 
@@ -145,6 +147,17 @@ const caseStudies: CaseStudy[] = [
 
 const conceptItems = [
   {
+    id: "med-recon",
+    type: "AI Product Sprint",
+    name: "Medication Reconciliation",
+    hook: "The AI didn't need to be trusted. It needed to be checked.",
+    desc: "A 3-day sprint designing a human-in-the-loop verification cockpit for clinicians reconciling patient-reported meds against the EHR.",
+    bg: "linear-gradient(135deg, rgba(59,130,246,.14), rgba(255,255,255,.94))",
+    emoji: "💊",
+    route: "/case-study/medication-reconciliation",
+    image: medReconCover,
+  },
+  {
     id: "apple",
     type: "Product Thinking",
     name: "Apple iOS Look Up",
@@ -166,6 +179,17 @@ const conceptItems = [
     route: "/case-study/jobflow",
     image: jobflowCover,
   },
+  {
+  id: "magic-patterns",
+  type: "Product Critique & Redesign",
+  name: "Magic Patterns",
+  hook: "The AI got better output when the prompt got smarter.",
+  desc: "Tested Magic Patterns with a clinical dashboard. First prompt: static data, no actions. Second prompt, with real product thinking, reactive stats, call logging, and cancellations as available inventory.",
+  bg: "linear-gradient(135deg, #1e1b4b, #2d1b69)",
+  emoji: "🔬",
+  route: "/case-study/magic-patterns",
+  image: magicPatternsCover,
+},
 ];
 
 const storyBeats = [
