@@ -12,6 +12,10 @@ import GDInfotek from "./pages/GDInfotek";
 import MagicPatterns from "./pages/MagicPatterns";
 
 import MedicationReconciliation from "./pages/MedicationReconciliation.tsx";
+import CaseStudyTikTokDashboard from "./pages/CaseStudyTikTokDashboard.tsx";
+import CaseStudyBriefToBlueprint from "./pages/CaseStudyBriefToBlueprint.tsx";
+import CaseStudyTapTheBeat from "./pages/CaseStudyTapTheBeat.tsx";
+import FieldNotes from "./pages/FieldNotes.tsx";
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -35,6 +39,10 @@ export default function App() {
         <Route path="/case-study/fintech" element={<CaseStudyFintech />} />
         <Route path="/case-study/gdinfotek" element={<GDInfotek />} />
         <Route path="/case-study/Medication-reconciliation" element={<MedicationReconciliation />} />
+        <Route path="/case-study/tiktok-dashboard" element={<CaseStudyTikTokDashboard />} />
+        <Route path="/case-study/brief-to-blueprint" element={<CaseStudyBriefToBlueprint />} />
+        <Route path="/case-study/tap-the-beat" element={<CaseStudyTapTheBeat />} />
+        <Route path="/field-notes" element={<FieldNotes />} />
         <Route path="/case-study/magic-patterns" element={<MagicPatterns />} />
 
         <Route path="/case-study/apple-concept" element={<AppleConcept />} />

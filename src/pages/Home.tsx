@@ -371,6 +371,35 @@ export default function Home() {
         .concept-body p{font-size:13px;color:#756d64;line-height:1.7;margin-top:10px}
         .concept-link{font-size:12px;color:var(--ink);font-weight:800;margin-top:16px}
 
+        /* FIELD NOTES TILE */
+        .field-notes-tile{
+          position:relative;
+          margin-top:18px;
+          padding:26px 30px;
+          border-radius:20px;
+          cursor:pointer;
+          background-color:#f4ede0;
+          background-image:linear-gradient(#dcd0b8 1px, transparent 1px), linear-gradient(90deg, #dcd0b8 1px, transparent 1px);
+          background-size:22px 22px;
+          border:1.5px dashed #a89771;
+          transition:transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+        }
+        .field-notes-tile:hover{transform:translateY(-4px);box-shadow:0 18px 46px rgba(74,64,40,.14)}
+        .field-notes-tape{
+          position:absolute;top:-9px;left:28px;width:56px;height:16px;
+          background:#d4794f;opacity:.5;transform:rotate(-5deg);
+          box-shadow:0 2px 6px rgba(74,64,40,.12);
+        }
+        .field-notes-label{
+          font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+          font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a7a5c;margin-bottom:12px;
+        }
+        .field-notes-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+        .field-notes-row h3{font-size:22px;font-weight:800;letter-spacing:-.03em;color:#4a4028}
+        .field-notes-row p{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:16px;color:#4a4028;margin-top:6px}
+        .field-notes-link{font-size:12px;font-weight:800;color:#4a4028;border-bottom:1.5px solid #a89771;padding-bottom:2px;white-space:nowrap}
+        .field-notes-tile:hover .field-notes-link{color:#d4794f;border-color:#d4794f}
+
         /* ABOUT */
         .about-section{background:linear-gradient(180deg,#fffaf2,#f4ecdf)}
         .about-shell{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:72px;align-items:start}
@@ -557,6 +586,18 @@ export default function Home() {
                 </article>
               ))}
             </div>
+
+            <article className="field-notes-tile" onClick={() => navigate("/field-notes")}>
+              <span className="field-notes-tape" />
+              <div className="field-notes-label">Field Notes / Vibe Coding Log</div>
+              <div className="field-notes-row">
+                <div>
+                  <h3>How these got built</h3>
+                  <p>Prompts, sketches, and a few things that broke along the way, vibe coding three ideas into working builds.</p>
+                </div>
+                <div className="field-notes-link">Read the notes →</div>
+              </div>
+            </article>
           </div>
         </section>
 
