@@ -279,7 +279,7 @@ function ChangeBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full font-semibold tabular-nums',
+        'inline-flex items-center gap-1 rounded-full font-semibold tabular-nums shrink-0',
         positive ? 'bg-emerald-600/10 text-emerald-600' : 'bg-rose-600/10 text-rose-600',
         size === 'lg' ? 'px-2.5 py-1 text-sm' : 'px-2 py-0.5 text-xs',
         className,
@@ -306,7 +306,7 @@ const navItems = [
 
 function DashboardSidebar() {
   return (
-    <aside className="flex h-full w-full flex-col justify-between bg-slate-900 text-slate-300 min-h-[600px]">
+    <aside className="flex h-full w-full flex-col justify-between bg-slate-900 text-slate-300">
       <div>
         <div className="flex items-center gap-2.5 px-6 py-6">
           <div className="flex size-9 items-center justify-center rounded-xl bg-rose-600 text-white">
@@ -358,7 +358,11 @@ function DashboardSidebar() {
 }
 
 // =============================================================================
-// TOP BAR WITH FILTER CONTROLS & DATE RANGE PICKER
+// TOP BAR
+// -----------------------------------------------------------------------------
+// `sticky top-0` here keeps the controls visible while the panel below it
+// scrolls internally (see the dashboard shell's `lg:overflow-y-auto`), so
+// filters and the Data/Empty toggle are never scrolled out of reach.
 // =============================================================================
 function DashboardTopBar({
   showData,
@@ -376,7 +380,7 @@ function DashboardTopBar({
   onSelectTimeframe: (tf: string) => void;
 }) {
   return (
-    <header className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
       <div>
         <h1 className="text-lg font-semibold leading-tight text-slate-900">Growth</h1>
         <p className="hidden text-xs text-slate-500 sm:block">How your content performs across languages and regions</p>
@@ -472,7 +476,7 @@ function ProfileSummary({ profile }: { profile: CreatorProfile }) {
 }
 
 // =============================================================================
-// GROWTH HERO WITH LANGUAGE BREAKDOWN LEGEND
+// GROWTH HERO
 // =============================================================================
 const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -489,8 +493,8 @@ function GrowthHero({ total, changePct, spark }: { total: number; changePct: num
               <span className="size-2 rounded-full bg-rose-600" aria-hidden="true" />
               <h2 className="text-sm font-medium text-slate-500">International follower growth · last 7 days</h2>
             </div>
-            <div className="mt-4 flex items-end gap-3">
-              <span className="text-5xl font-semibold leading-none tracking-tight text-slate-900 sm:text-6xl">
+            <div className="mt-4 flex flex-wrap items-end gap-3">
+              <span className="text-4xl font-semibold leading-none tracking-tight text-slate-900 sm:text-5xl">
                 +{formatNumber(total)}
               </span>
               <ChangeBadge value={changePct} size="lg" className="mb-1" />
@@ -558,35 +562,35 @@ function GrowthHero({ total, changePct, spark }: { total: number; changePct: num
 }
 
 // =============================================================================
-// SECONDARY METRICS WITH DRILLDOWN MODAL
+// SECONDARY METRICS
 // =============================================================================
 function MetricCard({ metric, onOpenDetail }: { metric: SecondaryMetric; onOpenDetail: (m: SecondaryMetric) => void }) {
   const positive = metric.changePct >= 0;
   return (
-    <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <div className="flex flex-col justify-between min-h-[180px] rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
       <div>
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm font-medium text-slate-500">{metric.label}</p>
+          <p className="text-sm font-medium text-slate-500 leading-snug">{metric.label}</p>
           <ChangeBadge value={metric.changePct} />
         </div>
-        <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-slate-900">
+        <p className="mt-3 text-3xl font-semibold tabular-nums tracking-tight text-slate-900">
           {formatValue(metric.value, metric.format)}
         </p>
       </div>
 
-      <div>
+      <div className="mt-4">
         <Sparkline
           data={metric.spark}
           width={220}
-          height={44}
+          height={40}
           strokeWidth={2}
-          className="mt-3 h-11 w-full"
+          className="h-10 w-full"
           strokeClassName={positive ? 'text-emerald-600' : 'text-rose-600'}
         />
 
         <button
           onClick={() => onOpenDetail(metric)}
-          className="mt-3 flex w-full items-center justify-between border-t border-slate-100 pt-2.5 text-xs font-semibold text-rose-600 hover:text-rose-700"
+          className="mt-3 flex w-full items-center justify-between border-t border-slate-100 pt-3 text-xs font-semibold text-rose-600 hover:text-rose-700"
         >
           <span>View Language Breakdown</span>
           <ChevronRight className="size-3.5" aria-hidden="true" />
@@ -661,7 +665,12 @@ function MetricDetailModal({ metric, onClose }: { metric: SecondaryMetric; onClo
 }
 
 // =============================================================================
-// AI INSIGHTS WITH DIRECT ACTION BUTTONS
+// AI INSIGHTS
+// -----------------------------------------------------------------------------
+// No longer forced to `h-full` / `justify-between` — that was fighting the
+// timeline chart next to it for equal column height and pushing the chart's
+// footer stats down into a big empty gap. Each card now just takes the
+// height its own content needs.
 // =============================================================================
 function AiInsights({ insights }: { insights: Insight[] }) {
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
@@ -676,7 +685,7 @@ function AiInsights({ insights }: { insights: Insight[] }) {
 
   return (
     <section
-      className="rounded-2xl border border-rose-600/15 bg-rose-50 p-6 shadow-sm"
+      className="rounded-2xl border border-rose-600/15 bg-rose-50 p-5 sm:p-6 shadow-sm"
       aria-labelledby="ai-insights-heading"
     >
       <div className="flex items-center gap-2.5">
@@ -697,7 +706,7 @@ function AiInsights({ insights }: { insights: Insight[] }) {
           return (
             <li
               key={insight.id}
-              className="group rounded-xl border border-slate-200/60 bg-white/70 p-4 transition-colors hover:border-rose-600/30"
+              className="group rounded-xl border border-slate-200/60 bg-white/80 p-4 transition-colors hover:border-rose-600/30"
             >
               <div className="flex items-center justify-between">
                 <span className="rounded bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
@@ -707,7 +716,7 @@ function AiInsights({ insights }: { insights: Insight[] }) {
               <p className="mt-1.5 text-pretty text-sm font-medium leading-snug text-slate-900">{insight.headline}</p>
               <p className="mt-1 text-pretty text-xs leading-relaxed text-slate-500">{insight.detail}</p>
 
-              <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
                 <a
                   href="#"
                   onClick={(e) => e.preventDefault()}
@@ -720,7 +729,7 @@ function AiInsights({ insights }: { insights: Insight[] }) {
                 <button
                   onClick={() => toggleApply(insight.id)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all shadow-sm',
+                    'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all shadow-sm',
                     isApplied
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : 'bg-rose-600 text-white hover:bg-rose-700',
@@ -728,12 +737,12 @@ function AiInsights({ insights }: { insights: Insight[] }) {
                 >
                   {isApplied ? (
                     <>
-                      <CheckCircle2 className="size-3.5" />
+                      <CheckCircle2 className="size-3.5 shrink-0" />
                       <span>Scheduled</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="size-3.5" />
+                      <Plus className="size-3.5 shrink-0" />
                       <span>{insight.actionText}</span>
                     </>
                   )}
@@ -748,7 +757,11 @@ function AiInsights({ insights }: { insights: Insight[] }) {
 }
 
 // =============================================================================
-// TIMELINE CHART WITH MULTI-LANGUAGE LEGEND
+// TIMELINE CHART
+// -----------------------------------------------------------------------------
+// Same fix as AiInsights: dropped `h-full flex flex-col justify-between`, so
+// the footer stats row sits directly under the chart instead of being
+// stretched to the bottom of a taller sibling column.
 // =============================================================================
 const CHART_W = 800;
 const CHART_H = 300;
@@ -805,7 +818,7 @@ function TimelineChart({ timeline }: { timeline: TimelinePoint[] }) {
   const activeBreakdown = timeline[active].breakdown;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-label="Performance timeline">
+    <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-label="Performance timeline">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-slate-900">International performance over time</h2>
@@ -829,96 +842,94 @@ function TimelineChart({ timeline }: { timeline: TimelinePoint[] }) {
         </div>
       </div>
 
-      <div className="mt-5">
-        <svg
-          viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-          className="h-64 w-full touch-none sm:h-72"
-          onPointerMove={handleMove}
-          onPointerLeave={() => setHover(null)}
-          role="img"
-          aria-label={`${meta.label} timeline chart`}
-        >
-          <defs>
-            <linearGradient id="timelineFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-            </linearGradient>
-          </defs>
+      <svg
+        viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+        className="h-64 w-full touch-none sm:h-72"
+        onPointerMove={handleMove}
+        onPointerLeave={() => setHover(null)}
+        role="img"
+        aria-label={`${meta.label} timeline chart`}
+      >
+        <defs>
+          <linearGradient id="timelineFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
+        </defs>
 
-          {ticks.map((t, i) => (
-            <g key={i}>
-              <line
-                x1={CHART_PAD.left}
-                x2={CHART_W - CHART_PAD.right}
-                y1={t.y}
-                y2={t.y}
-                className="text-slate-200"
-                stroke="currentColor"
-                strokeDasharray="3 4"
-                strokeWidth={1}
-              />
-              <text x={CHART_PAD.left - 10} y={t.y + 4} textAnchor="end" className="fill-slate-500 text-[11px]">
-                {formatValue(t.value, meta.format)}
-              </text>
-            </g>
-          ))}
-
-          <path d={areaPath} className="text-rose-600" fill="url(#timelineFill)" stroke="none" />
-          <path
-            d={linePath}
-            fill="none"
-            className="text-rose-600"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {timeline.map((p, i) => (
-            <text
-              key={p.label}
-              x={points[i].x}
-              y={CHART_H - CHART_PAD.bottom + 20}
-              textAnchor="middle"
-              className="fill-slate-500 text-[11px]"
-            >
-              {p.label}
+        {ticks.map((t, i) => (
+          <g key={i}>
+            <line
+              x1={CHART_PAD.left}
+              x2={CHART_W - CHART_PAD.right}
+              y1={t.y}
+              y2={t.y}
+              className="text-slate-200"
+              stroke="currentColor"
+              strokeDasharray="3 4"
+              strokeWidth={1}
+            />
+            <text x={CHART_PAD.left - 10} y={t.y + 4} textAnchor="end" className="fill-slate-500 text-[11px]">
+              {formatValue(t.value, meta.format)}
             </text>
+          </g>
+        ))}
+
+        <path d={areaPath} className="text-rose-600" fill="url(#timelineFill)" stroke="none" />
+        <path
+          d={linePath}
+          fill="none"
+          className="text-rose-600"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {timeline.map((p, i) => (
+          <text
+            key={p.label}
+            x={points[i].x}
+            y={CHART_H - CHART_PAD.bottom + 20}
+            textAnchor="middle"
+            className="fill-slate-500 text-[11px]"
+          >
+            {p.label}
+          </text>
+        ))}
+
+        <line
+          x1={points[active].x}
+          x2={points[active].x}
+          y1={CHART_PAD.top}
+          y2={CHART_H - CHART_PAD.bottom}
+          className="text-slate-200"
+          stroke="currentColor"
+          strokeWidth={1}
+        />
+        <circle
+          cx={points[active].x}
+          cy={points[active].y}
+          r={5}
+          className="text-rose-600"
+          fill="currentColor"
+          stroke="white"
+          strokeWidth={2}
+        />
+      </svg>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3 text-sm">
+        <div className="flex items-center gap-4">
+          <span className="font-semibold text-slate-900">{timeline[active].label}:</span>
+          <span className="font-semibold tabular-nums text-slate-900">{formatValue(values[active], meta.format)}</span>
+        </div>
+
+        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+          {Object.entries(activeBreakdown).map(([lang, pct]) => (
+            <span key={lang} className="inline-flex items-center gap-1">
+              <span className="font-medium text-slate-700">{lang}:</span> {pct}%
+            </span>
           ))}
-
-          <line
-            x1={points[active].x}
-            x2={points[active].x}
-            y1={CHART_PAD.top}
-            y2={CHART_H - CHART_PAD.bottom}
-            className="text-slate-200"
-            stroke="currentColor"
-            strokeWidth={1}
-          />
-          <circle
-            cx={points[active].x}
-            cy={points[active].y}
-            r={5}
-            className="text-rose-600"
-            fill="currentColor"
-            stroke="white"
-            strokeWidth={2}
-          />
-        </svg>
-
-        <div className="mt-3 flex flex-wrap items-center justify-between border-t border-slate-200 pt-3 text-sm">
-          <div className="flex items-center gap-4">
-            <span className="font-semibold text-slate-900">{timeline[active].label}:</span>
-            <span className="font-semibold tabular-nums text-slate-900">{formatValue(values[active], meta.format)}</span>
-          </div>
-
-          <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-            {Object.entries(activeBreakdown).map(([lang, pct]) => (
-              <span key={lang} className="inline-flex items-center gap-1">
-                <span className="font-medium text-slate-700">{lang}:</span> {pct}%
-              </span>
-            ))}
-          </div>
         </div>
       </div>
     </section>
@@ -948,6 +959,19 @@ function EmptyState() {
 
 // =============================================================================
 // DASHBOARD SHELL
+// -----------------------------------------------------------------------------
+// LAYOUT FIX, explained:
+// The outer panel now has a fixed height on desktop (`lg:h-[800px]`) instead
+// of only a minimum height. The sidebar is a flex child of that fixed-height
+// row, so it always spans the full panel and never scrolls out of view.
+// The content column gets `lg:min-h-0 lg:overflow-y-auto`: `min-h-0` is the
+// part that's easy to miss — without it, a flex child's default min-height
+// is "auto," which means it grows to fit its content and drags the whole
+// panel down with it, and `overflow-y-auto` never gets a chance to kick in.
+// With `min-h-0` set, the column is capped at the panel's height and any
+// extra content scrolls inside it instead, while the sidebar stays put.
+// On mobile the sidebar is hidden entirely, so no fixed height is forced
+// there — the panel just grows with its content as it did before.
 // =============================================================================
 function CreatorAnalyticsDashboard() {
   const [showData, setShowData] = useState(true);
@@ -956,14 +980,14 @@ function CreatorAnalyticsDashboard() {
   const [activeModalMetric, setActiveModalMetric] = useState<SecondaryMetric | null>(null);
 
   return (
-    <div className="relative flex min-h-[700px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-xl">
-      {/* Sidebar inside relative frame */}
-      <div className="hidden lg:block lg:w-64 lg:shrink-0">
+    <div className="flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-xl lg:h-[800px] lg:flex-row">
+      {/* Sidebar - stretches to the panel's full height, stays fixed while content scrolls */}
+      <div className="hidden lg:block lg:w-56 xl:w-64 lg:shrink-0">
         <DashboardSidebar />
       </div>
 
-      {/* Dashboard main area */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+      {/* Main Content Area - the only part that scrolls on desktop */}
+      <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-y-auto">
         <DashboardTopBar
           showData={showData}
           onToggleData={setShowData}
@@ -973,7 +997,7 @@ function CreatorAnalyticsDashboard() {
           onSelectTimeframe={setSelectedTimeframe}
         />
 
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <main className="w-full flex-1 px-4 py-6 sm:px-6 sm:py-8">
           <div className="flex flex-col gap-6">
             <ProfileSummary profile={profile} />
 
@@ -983,11 +1007,11 @@ function CreatorAnalyticsDashboard() {
 
                 <SecondaryMetrics metrics={secondaryMetrics} onOpenDetail={setActiveModalMetric} />
 
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-                  <div className="xl:col-span-1">
+                <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+                  <div className="lg:col-span-5 xl:col-span-4">
                     <AiInsights insights={insights} />
                   </div>
-                  <div className="xl:col-span-2">
+                  <div className="lg:col-span-7 xl:col-span-8">
                     <TimelineChart timeline={timeline} />
                   </div>
                 </div>
@@ -1099,8 +1123,8 @@ export default function CaseStudyTikTokDashboard() {
         </div>
       </article>
 
-      <section id="sandbox" className="max-w-7xl mx-auto px-4 sm:px-6 py-6 border-t border-slate-200">
-        {/* Prototype Context Banner */}
+      {/* Full Width Sandbox Section */}
+      <section id="sandbox" className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 border-t border-slate-200">
         <div className="mb-4 flex items-start sm:items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-xs text-slate-600 shadow-sm">
           <Info className="size-4 shrink-0 text-rose-600 mt-0.5 sm:mt-0" aria-hidden="true" />
           <p>
